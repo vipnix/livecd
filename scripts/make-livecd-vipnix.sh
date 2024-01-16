@@ -463,6 +463,7 @@ rm -rf ${ROOTDIR}/customcd/files/etc/ssh/*key*
 rm -rf ${ROOTDIR}/customcd/files/root/.gitconfig
 mkdir -p ${ROOTDIR}/customcd/files/root/.ssh
 rm -rf ${ROOTDIR}/customcd/files/root/skel*
+rm -f ${ROOTDIR}/customcd/files/etc/skel*.tar.bz2
 rm -f ${ROOTDIR}/customcd/files/etc/resolv.conf
 
 umount_all
@@ -472,6 +473,11 @@ touch "${ROOTDIR}/customcd/isoroot/customized"
 
 rm -rf ${ROOTDIR}/customcd/files/lib/modules/ ${ROOTDIR}/customcd/files/lib/firmware ${ROOTDIR}/customcd/files/usr/src//
 mkdir -p ${ROOTDIR}/customcd/files/lib/modules/ ${ROOTDIR}/customcd/files/lib/firmware
+rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
+chown root:root -R ${ROOTDIR}/customcd/files/root/
+chown root:root -R ${ROOTDIR}/customcd/files/etc/skel/
+chmod 700 -R ${ROOTDIR}/customcd/files/root/
+chmod 700 -R ${ROOTDIR}/customcd/files/etc/skel/
 
 rm -f ${ROOTDIR}/customcd/isoroot/image.squashfs*
 mksquashfs ${ROOTDIR}/customcd/files/ ${ROOTDIR}/customcd/isoroot/image.squashfs

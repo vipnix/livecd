@@ -2,7 +2,7 @@ VIPNIX LiveCD
 
 Based on [Funtoo Linux](https://funtoo.org/), with LXQT 1.4.0
 
-**Download Link:** <https://area31.host.funtoo.org/vipnix-livecd-20240115-2244.iso>
+**Download Link:** <https://area31.host.funtoo.org/vipnix-livecd-20240116-0010.iso>
 
 **MD5:** d056ccf2dcbec50270c7fb3ae9383300
 

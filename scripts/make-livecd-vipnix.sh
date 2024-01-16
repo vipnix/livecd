@@ -10,6 +10,7 @@
 
 ISOROOT_RELEASE="isoroot-livecd-vipnix-2.0.tar.bz2"
 ROOTDIR="/livecd-vipnix"
+SKEL_VERSION="0.1"
 
 ############################################################################################
 
@@ -391,8 +392,10 @@ check-needs-mounted
 #####################
 # Prepare user environment
 
-rm ${ROOTDIR}/customcd/files/root/skel.tar.bz2
-wget https://vipnix.com.br/src-livecd/files/skel.tar.bz2  -P ${ROOTDIR}/customcd/files/root ; tar xjpf ${ROOTDIR}/customcd/files/root/skel.tar.bz2 -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/root/skel.tar.bz2 ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
+rm ${ROOTDIR}/customcd/files/etc/skel*.tar.bz2
+wget https://raw.githubusercontent.com/vipnix/livecd/main/sources/skel-${SKEL_VERSION}.tar.bz2 -P ${ROOTDIR}/customcd/files/etc
+tar xjpf ${ROOTDIR}/customcd/files/etc/skel-${SKEL_VERSION}.tar.bz2 -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/etc/skel*.tar.bz2 ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
+
 
 
 ###########################################
@@ -424,7 +427,7 @@ echo '{
 rm -rf ${ROOTDIR}/customcd/isoroot
 rm ${ROOTDIR}/isoroot-livecd-vipnix*
 
-wget https://vipnix.com.br/src-livecd/${ISOROOT_RELEASE} -P ${ROOTDIR}
+wget https://raw.githubusercontent.com/vipnix/livecd/main/sources/${ISOROOT_RELEASE} -P ${ROOTDIR}
 tar xjpf ${ROOTDIR}/${ISOROOT_RELEASE} -C ${ROOTDIR}/customcd
 
 # Initramfs

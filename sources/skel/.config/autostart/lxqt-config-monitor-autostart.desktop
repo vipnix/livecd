@@ -1,0 +1,7 @@
+[Desktop Entry]
+Comment=Autostart monitor settings for LXQt-config-monitor
+Exec=lxqt-config-monitor -l
+Name=lxqt-config-monitor-autostart
+OnlyShowIn=LXQt
+Type=Application
+Version=1.0

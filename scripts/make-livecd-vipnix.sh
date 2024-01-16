@@ -499,7 +499,7 @@ grub-mkimage --directory "/usr/lib/grub/x86_64-efi" --prefix "/boot/grub" --outp
 VERSION="\$(ls /boot/kernel-debian-sources-x86_64*)"
 
 rm -f /boot/kernel-funtoo
-sbsign --key /etc/kernel/certs/linux/signing_key.asc --cert /etc/kernel/certs/linux/signing_key.cert --output /boot/kernel-funtoo "\${VERSION}"
+sbsign --key /etc/kernel/certs/linux/signing_key.priv --cert /etc/kernel/certs/linux/signing_key.pem --output /boot/kernel-funtoo "\${VERSION}"
 
 ###############################################################
 

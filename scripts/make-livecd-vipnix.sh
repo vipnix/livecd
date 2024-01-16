@@ -9,7 +9,7 @@
 ##############################################################
 
 ISOROOT_RELEASE="isoroot-livecd-vipnix-2.0.tar.bz2"
-ROOTDIR="/livecd"
+ROOTDIR="/livecd-vipnix"
 
 ############################################################################################
 
@@ -394,6 +394,7 @@ check-needs-mounted
 rm ${ROOTDIR}/customcd/files/root/skel.tar.bz2
 wget https://vipnix.com.br/src-livecd/files/skel.tar.bz2  -P ${ROOTDIR}/customcd/files/root ; tar xjpf ${ROOTDIR}/customcd/files/root/skel.tar.bz2 -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/root/skel.tar.bz2 ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
 
+
 ###########################################
 
 # Fix discord bug running as root
@@ -465,6 +466,10 @@ umount_all
 # Create squashfs
 touch "${ROOTDIR}/customcd/files/customized"
 touch "${ROOTDIR}/customcd/isoroot/customized"
+
+rm -rf ${ROOTDIR}/customcd/files/lib/modules/ ${ROOTDIR}/customcd/files/lib/firmware ${ROOTDIR}/customcd/files/usr/src//
+mkdir -p ${ROOTDIR}/customcd/files/lib/modules/ ${ROOTDIR}/customcd/files/lib/firmware
+
 rm -f ${ROOTDIR}/customcd/isoroot/image.squashfs*
 mksquashfs ${ROOTDIR}/customcd/files/ ${ROOTDIR}/customcd/isoroot/image.squashfs
 cd ${ROOTDIR}/customcd/isoroot/ ; md5sum image.squashfs > image.squashfs.md5

@@ -4,9 +4,9 @@ Based on [Funtoo Linux](https://funtoo.org/), with LXQT 1.4.0
 
 **Download Link:** <https://area31.host.funtoo.org/vipnix-livecd-20240116-0010.iso>
 
-**MD5:** d056ccf2dcbec50270c7fb3ae9383300
+**MD5:** d4ab57f2b50f521344c0235d0969340d
 
-**SHA256:** b12e27bc878b2dbeb11ebd0076d53e6c8d0b68b9e0a279e1caf81e47b43f6262
+**SHA256:** 1d39b88b037f65eff81b239bb9498983207c1dd51436c4030ee3af6147e93e30
 
 type "**startx**" and have a lot of fun 😄
 

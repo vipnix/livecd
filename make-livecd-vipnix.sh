@@ -83,7 +83,8 @@ check-needs-umounted
 rm -rf ${ROOTDIR}
 mkdir -p ${ROOTDIR}
 rm ${ROOTDIR}/stage3-latest*
-wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
+#wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
+wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
 
 mkdir -p ${ROOTDIR}/customcd/files
 tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-latest.tar.xz -C ${ROOTDIR}/customcd/files
@@ -137,7 +138,11 @@ mkdir -p /etc/vipnix
 
 echo -e "PRODUCT=\"LiveCD VIPNIX\"\nID=\"livecd-vipnix-funtoo\"\nHOME_URL=\"https://vipnix.com.br\"\nBUG_REPORT_EMAIL=\"suporte@vipnix.com.br\"" > /etc/vipnix/livecd-release
 
-# update portage tree
+# update portage tree (Macaroni OS)
+
+echo -e '[global]\nrelease = next\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
+rm -rf /var/git/meta-repo
+
 ego sync
 
 mkdir -p /var/overlay ; cd /var/overlay

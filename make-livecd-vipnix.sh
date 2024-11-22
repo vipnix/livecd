@@ -163,7 +163,7 @@ epro mix-ins +lxqt
 
 # Configure useflags
 echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use
-echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  > /etc/portage/package.use
+echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use
 echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use
 echo 'net-libs/gnutls tools' >> /etc/portage/package.use
 echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use
@@ -330,6 +330,9 @@ authorityKeyIdentifier  = keyid:always,issuer
 basicConstraints        = critical,CA:FALSE
 extendedKeyUsage        = codeSigning,1.3.6.1.4.1.311.10.3.6
 nsComment               = "OpenSSL Generated Certificate"' > /etc/kernel/certs/linux/vipnix.cnf
+#
+# Generate RNG
+openssl rand -writerand .rnd
 
 # Generates a new plain text PRIVATE key (signing_key.priv) and a binary PUBLIC key (signing_key.der) (used by mokutil)
 openssl req -config /etc/kernel/certs/linux/vipnix.cnf -new -x509 -newkey rsa:2048 -nodes -days 36500 -outform DER -keyout "/etc/kernel/certs/linux/signing_key.priv" -out "/etc/kernel/certs/linux/signing_key.der"

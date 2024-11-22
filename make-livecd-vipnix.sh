@@ -84,6 +84,7 @@ rm -rf ${ROOTDIR}
 mkdir -p ${ROOTDIR}
 rm ${ROOTDIR}/stage3-latest*
 wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
+#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/mark/stage3-x86-64bit-generic_64-mark/terragon-mark.tar.xz
 #wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
 
 mkdir -p ${ROOTDIR}/customcd/files
@@ -145,6 +146,8 @@ echo -e '[global]\nrelease = mark-testing\npython_kit_profile = mark\nsync_base_
 
 rm -rf /var/git/meta-repo
 
+ego profile build mark
+
 ego sync
 
 mkdir -p /var/overlay ; cd /var/overlay
@@ -159,13 +162,17 @@ epro mix-ins +no-systemd
 epro mix-ins +lxqt
 
 # Configure useflags
-echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use
+#echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use
+echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  > /etc/portage/package.use
 echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use
 echo 'net-libs/gnutls tools' >> /etc/portage/package.use
 echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use
 echo 'sys-boot/syslinux -efi' >> /etc/portage/package.use
 echo 'app-emulation/qemu -doc' >> /etc/portage/package.use
 echo '>=app-text/poppler-24.01.0 cairo' >> /etc/portage/package.use
+echo 'gnome-base/gvfs -ios' >> /etc/portage/package.use
+echo 'sys-power/upower -ios' >> /etc/portage/package.use
+echo 'kde-frameworks/solid -ios' >> /etc/portage/package.use
 
 # fix bug qemu
 #echo '>=sys-apps/openrc-0.45.1 **' > /etc/portage/package.accept_keywords
@@ -184,6 +191,7 @@ echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\nsys-block/gparted crypts
 echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use
 
 echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles\"" > /etc/portage/make.conf
+echo -e "PYTHON_TARGETS=\"python3_9\"\nPYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
 
 EOF
 
@@ -212,7 +220,7 @@ emerge -uD world --newuse --exclude gcc --exclude debian-sources
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Emerge essential ebuilds
-emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-apps/iucode_tool sys-block/parted sys-boot/grub sys-boot/syslinux sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools net-vpn/logmein-hamachi sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-funtoo-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
+emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools net-vpn/logmein-hamachi sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-funtoo-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 emerge @preserved-rebuild
@@ -234,6 +242,7 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 emerge net-misc/chrony net-vpn/openvpn sys-fs/mdadm sys-fs/lvm2 sys-apps/dool app-arch/lz4 -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
+etc-update --automode -5
 EOF
 cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part3.sh <<EOF
 . /etc/profile
@@ -343,7 +352,8 @@ rm -rf /boot/*
 rm -rf /lib/modules/*
 rm -rf /usr/src/*
 
-emerge debian-sources
+#emerge sys-kernel/debian-sources-lts
+emerge debian-sources:bookworm
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 #######################################################################

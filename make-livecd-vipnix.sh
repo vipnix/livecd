@@ -162,7 +162,7 @@ epro mix-ins +no-systemd
 epro mix-ins +lxqt
 
 # Configure useflags
-#echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use
+echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use
 echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  > /etc/portage/package.use
 echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use
 echo 'net-libs/gnutls tools' >> /etc/portage/package.use

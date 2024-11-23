@@ -1,6 +1,6 @@
 VIPNIX LiveCD
 
-Based on [Funtoo Linux](https://funtoo.org/), with LXQT 1.4.0
+Based on [Macaroni OS](https://www.macaronios.org), with LXQT 1.4.0
 
 **Download Link:** <https://vipnix.com.br/site/livecd-vipnix/>
 

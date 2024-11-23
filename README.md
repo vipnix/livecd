@@ -12,5 +12,5 @@ Screenshots:
 
 ![GRUB Vipnix LiveCD](screenshots/grub-vipnix-livecd.jpg)
 
-![LXQT Vipnix LiveCD](screenshots/lxqt-vipnix-livecd.png)
+![LXQT Vipnix LiveCD](screenshots/lxqt-vipnix-livecd-macaronios.png)
 

@@ -8,8 +8,9 @@
 # 
 ##############################################################
 
-ISOROOT_RELEASE="isoroot-livecd-vipnix-2.0.tar.bz2"
+ISOROOT_RELEASE="isoroot-livecd-vipnix-3.1.tar.bz2"
 ROOTDIR="/livecd-vipnix"
+SKEL_VER="skel-0.4.tar.bz2"
 
 ############################################################################################
 
@@ -83,9 +84,13 @@ check-needs-umounted
 rm -rf ${ROOTDIR}
 mkdir -p ${ROOTDIR}
 rm ${ROOTDIR}/stage3-latest*
-wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
+#wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
 #wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/mark/stage3-x86-64bit-generic_64-mark/terragon-mark.tar.xz
+#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/2024-09-16/stage3-x86-64bit-generic_64-mark%2Bterragon-2024-09-16.tar.xz -P ${ROOTDIR}
+wget http://ip.vipnix.com.br/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz -P ${ROOTDIR}
+
 #wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
+mv ${ROOTDIR}/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
 
 mkdir -p ${ROOTDIR}/customcd/files
 tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-latest.tar.xz -C ${ROOTDIR}/customcd/files
@@ -135,20 +140,28 @@ cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part1.sh <<EOF
 echo "RUNNING SCRIPT INTO CHROOT..."
 set -x
 
+mkdir -p /root/.ssh
+chown -R root:root /root
+chmod -R 700 /root/.ssh
+
 mkdir -p /etc/vipnix
 
 echo -e "PRODUCT=\"LiveCD VIPNIX\"\nID=\"livecd-vipnix-funtoo\"\nHOME_URL=\"https://vipnix.com.br\"\nBUG_REPORT_EMAIL=\"suporte@vipnix.com.br\"" > /etc/vipnix/livecd-release
 
 # update portage tree (Macaroni OS)
 
-#echo -e '[global]\nrelease = next\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
-echo -e '[global]\nrelease = mark-testing\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
+#echo -e '[global]\nrelease = mark-iii\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
+
+#echo -e 'app-alternatives\napp-containers' > /etc/portage/categories
 
 rm -rf /var/git/meta-repo
 
+ego sync
+
 ego profile build mark
 
-ego sync
+luet repo update
+
 
 mkdir -p /var/overlay ; cd /var/overlay
 rm -rf coffnix-ebuilds
@@ -159,20 +172,51 @@ echo -e "[overlay-local]\nlocation = /var/overlay/overlay-local\nauto-sync = no\
 
 # Configure livecd profile
 epro mix-ins +no-systemd
-epro mix-ins +lxqt
+#epro mix-ins +lxqt
+epro mix-ins +pulseaudio
+
+rm /etc/portage/repos.conf/geaaru-kit
 
 # Configure useflags
-echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use
-echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use
-echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use
-echo 'net-libs/gnutls tools' >> /etc/portage/package.use
-echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use
-echo 'sys-boot/syslinux -efi' >> /etc/portage/package.use
-echo 'app-emulation/qemu -doc' >> /etc/portage/package.use
-echo '>=app-text/poppler-24.01.0 cairo' >> /etc/portage/package.use
-echo 'gnome-base/gvfs -ios' >> /etc/portage/package.use
-echo 'sys-power/upower -ios' >> /etc/portage/package.use
-echo 'kde-frameworks/solid -ios' >> /etc/portage/package.use
+echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
+echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-libs/gnutls tools' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-boot/syslinux -efi' >> /etc/portage/package.use/99-vipnix.use
+echo 'app-emulation/qemu -doc' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-text/poppler-24.01.0 cairo' >> /etc/portage/package.use/99-vipnix.use
+echo 'gnome-base/gvfs -ios' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-power/upower -ios' >> /etc/portage/package.use/99-vipnix.use
+echo 'kde-frameworks/solid -ios' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-block/gparted btrfs fat hfs jfs ntfs reiserfs xfs cryptsetup dmraid f2fs -kde mdadm -policykit -reiser4 udf -wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-sound/pulseaudio dbus' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libpcre2-10.35 pcre16' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/libxkbcommon-1.4.1 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-sound/pulseaudio-16.1 bluetooth' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/glib-2.72.0 dbus' >> /etc/portage/package.use/99-vipnix.use
+echo '>=kde-frameworks/kwindowsystem-5.113.0:5 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/pango-1.48.11 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qtgui-5.15.11-r2 egl' >> /etc/portage/package.use/99-vipnix.use
+echo '>=net-misc/networkmanager-1.52.0 elogind' >> /etc/portage/package.use/99-vipnix.use
+echo '>=sys-auth/consolekit-1.2.1 policykit' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-crypt/pinentry-1.2.1 gnome-keyring' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/libcanberra alsa' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-video/pipewire -X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/freetype-2.10.4-r1 harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-text/ghostscript-gpl-9.53.3-r2 cups' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/freetype harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -fuse kerberos -openh264 pulseaudio -sdl server -smartcard -test usb -wayland -xv' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-misc/rdesktop xrandr kerberos' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
+
+
+# fix bug x11 geaaru repo
+echo '=x11-base/xorg-proto-2024.1' > /etc/portage/package.mask
+echo '=x11-proto/dri3proto-1.4-r2' >> /etc/portage/package.mask
+echo '=x11-proto/presentproto-1.4-r2' >> /etc/portage/package.mask
 
 # fix bug qemu
 #echo '>=sys-apps/openrc-0.45.1 **' > /etc/portage/package.accept_keywords
@@ -185,13 +229,13 @@ echo -e "lxqt-base/lxqt-meta **\nx11-misc/pcmanfm-qt **\ndev-qt/qtgui **\ndev-qt
 echo -e '>=sys-auth/consolekit-1.2.1 policykit\n>=dev-libs/glib-2.70.0-r2 dbus\n>=x11-libs/cairo-1.16.0-r4 X\n>=kde-frameworks/kwindowsystem-5.98.0 X\n>=x11-libs/libxkbcommon-1.4.1 X\n>=dev-libs/libpcre2-10.35 pcre16\n>=x11-libs/pango-1.48.11 X\n>=sys-libs/pam-1.3.1.20190226 elogind\n>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use
 
 # tools
-echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\nsys-block/gparted cryptsetup -dmraid f2fs mdadm reiser4 udf\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use
+echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use
 
 # bugs
 echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use
 
 echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles\"" > /etc/portage/make.conf
-echo -e "#PYTHON_TARGETS=\"python3_9\"\n#PYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
+echo -e "PYTHON_TARGETS=\"python3_9\"\nPYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
 
 EOF
 
@@ -199,28 +243,29 @@ cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part2.sh <<EOF
 . /etc/profile
 
 # fix bux
-emerge app-shells/bash-completion -N
-if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+#emerge app-shells/bash-completion -N
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # dep app-crypt/nwipe fix bug
-emerge dev-libs/libconfig
+emerge dev-libs/libconfig -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge dev-util/cmake
+emerge dev-util/cmake -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge dev-python/packaging
+emerge dev-python/packaging -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 emerge @preserved-rebuild
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Update ebuilds and remove old kernel release
-emerge -uD world --newuse --exclude gcc --exclude debian-sources
+#emerge -uD world --newuse --exclude gcc --exclude debian-sources
+emerge -uD world --newuse --exclude gcc --exclude debian-sources --exclude miscfiles --exclude bash-completion
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Emerge essential ebuilds
-emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools net-vpn/logmein-hamachi sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-funtoo-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
+emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/openbsd-netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-funtoo-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 emerge @preserved-rebuild
@@ -235,12 +280,30 @@ emerge =lxqt-base/lxqt-meta-1.4.0 =x11-terms/qterminal-1.4.0 gnome-extra/nm-appl
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Tools
-emerge sys-block/gparted www-client/firefox-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m net-im/discord-bin net-im/telegram-desktop-bin  -N
+emerge sys-block/gparted www-client/brave-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m net-im/discord-bin net-im/telegram-desktop-bin  -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # net tools
-emerge net-misc/chrony net-vpn/openvpn sys-fs/mdadm sys-fs/lvm2 sys-apps/dool app-arch/lz4 -N
+emerge net-misc/chrony net-vpn/openvpn sys-fs/mdadm sys-fs/dmraid sys-fs/lvm2 sys-apps/dool app-arch/lz4 -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# RDP tools
+
+emerge net-misc/rdesktop -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge media-libs/libsdl3 -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge media-libs/sdl2-ttf -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge net-misc/freerdp -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest media-sound/pulseaudio-daemon
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
 
 etc-update --automode -5
 EOF
@@ -252,7 +315,7 @@ echo 'tmpfs   /                                       tmpfs   defaults        0 
 
 # Configure hostname
 sed -i /hostname=/d /etc/conf.d/hostname
-echo 'hostname="livecd-vipnix.local"' >> /etc/conf.d/hostname
+echo 'hostname="livecd-vipnix"' >> /etc/conf.d/hostname
 
 # Set root password and permit login using SSH
 echo -e "root\nroot" | passwd root
@@ -268,6 +331,16 @@ rc-update add gpm default
 rc-update add NetworkManager default
 rc-update add bluetooth default
 rc-update add avahi-daemon default
+rc-update add pulseaudio default
+
+# pulseaudio
+usermod -aG audio pulse
+if ! grep -q '^PULSEAUDIO_SHOULD_NOT_GO_SYSTEMWIDE=' /etc/conf.d/pulseaudio; then
+    echo 'PULSEAUDIO_SHOULD_NOT_GO_SYSTEMWIDE="no"' >> /etc/conf.d/pulseaudio
+fi
+
+sed -i '/^load-module module-native-protocol-unix/ !b; /auth-anonymous/ b; s|^load-module module-native-protocol-unix.*|load-module module-native-protocol-unix auth-anonymous=1 socket=/var/run/pulse/native|' /etc/pulse/system.pa
+
 
 sed -i /'c1:12345:respawn:'/d /etc/inittab
 sed -i /'c2:2345:respawn:'/d /etc/inittab
@@ -275,8 +348,6 @@ sed -i /'c3:2345:respawn:'/d /etc/inittab
 sed -i /'c4:2345:respawn:'/d /etc/inittab
 sed -i s,"# TERMINALS","# TERMINALS\nc1:12345:respawn:/sbin/agetty -nl /usr/bin/bashlogin 38400 tty1 linux\nc2:12345:respawn:/sbin/agetty -nl /usr/bin/bashlogin 38400 tty2 linux\nc3:12345:respawn:/sbin/agetty -nl /usr/bin/bashlogin 38400 tty3 linux\nc4:12345:respawn:/sbin/agetty --noclear 38400 tty4 linux",g /etc/inittab
 
-# Configure to UTC
-ln -sf /usr/share/zoneinfo/UTC /etc/localtime
 
 # Make automatic post-login banner
 CHECK="\$(grep bashlogin-banner /etc/bash/bashrc|wc -l)"
@@ -332,7 +403,8 @@ extendedKeyUsage        = codeSigning,1.3.6.1.4.1.311.10.3.6
 nsComment               = "OpenSSL Generated Certificate"' > /etc/kernel/certs/linux/vipnix.cnf
 #
 # Generate RNG
-openssl rand -writerand .rnd
+rm -f /root/.rnd /.rnd
+cd /root ; openssl rand -writerand .rnd
 
 # Generates a new plain text PRIVATE key (signing_key.priv) and a binary PUBLIC key (signing_key.der) (used by mokutil)
 openssl req -config /etc/kernel/certs/linux/vipnix.cnf -new -x509 -newkey rsa:2048 -nodes -days 36500 -outform DER -keyout "/etc/kernel/certs/linux/signing_key.priv" -out "/etc/kernel/certs/linux/signing_key.der"
@@ -356,7 +428,9 @@ rm -rf /lib/modules/*
 rm -rf /usr/src/*
 
 #emerge sys-kernel/debian-sources-lts
-emerge debian-sources:bookworm
+#emerge debian-sources:bookworm
+#emerge =sys-kernel/debian-sources-6.10.9_p1
+emerge sys-kernel/debian-sources
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 #######################################################################
@@ -424,34 +498,12 @@ check-needs-mounted
 #####################
 # Prepare user environment
 
-rm ${ROOTDIR}/customcd/files/root/skel.tar.bz2
-wget https://vipnix.com.br/src-livecd/files/skel.tar.bz2  -P ${ROOTDIR}/customcd/files/root ; tar xjpf ${ROOTDIR}/customcd/files/root/skel.tar.bz2 -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/root/skel.tar.bz2 ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
+rm ${ROOTDIR}/customcd/files/root/${SKEL_VER}
+wget https://vipnix.com.br/src-livecd/files/${SKEL_VER}  -P ${ROOTDIR}/customcd/files/root ; tar xjpf ${ROOTDIR}/customcd/files/root/${SKEL_VER} -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/root/${SKEL_VER} ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
 
 
 ###########################################
 
-# Fix discord bug running as root
-desktop_file="${ROOTDIR}/customcd/files/usr/share/applications/discord.desktop"
-
-if ! grep -q 'Exec=/opt/discord/Discord --no-sandbox' "$desktop_file"; then
-     sed -i s,'Exec=/opt/discord/Discord','Exec=/opt/discord/Discord --no-sandbox',g "$desktop_file"
-fi
-
-mkdir -p ${ROOTDIR}/customcd/files/etc/skel/.config/discord
-
-echo '{
-  "IS_MAXIMIZED": true,
-  "IS_MINIMIZED": false,
-  "WINDOW_BOUNDS": {
-    "x": 2240,
-    "y": 219,
-    "width": 1280,
-    "height": 720
-  },
-  "SKIP_HOST_UPDATE": true
-}' > ${ROOTDIR}/customcd/files/etc/skel/.config/discord/settings.json
-
-###########################################
 
 # Get/extract Funtoo isoroot and make initramfs:
 rm -rf ${ROOTDIR}/customcd/isoroot
@@ -484,6 +536,39 @@ stage5(){
 #####################
 check-needs-mounted
 #####################
+# Fix discord bug running as root
+desktop_file="${ROOTDIR}/customcd/files/usr/share/applications/discord.desktop"
+
+if ! grep -q 'Exec=/opt/discord/Discord --no-sandbox' "$desktop_file"; then
+     sed -i s,'Exec=/opt/discord/Discord','Exec=/opt/discord/Discord --no-sandbox',g "$desktop_file"
+fi
+
+mkdir -p ${ROOTDIR}/customcd/files/etc/skel/.config/discord
+
+echo '{
+  "IS_MAXIMIZED": true,
+  "IS_MINIMIZED": false,
+  "WINDOW_BOUNDS": {
+    "x": 2240,
+    "y": 219,
+    "width": 1280,
+    "height": 720
+  },
+  "SKIP_HOST_UPDATE": true
+}' > ${ROOTDIR}/customcd/files/etc/skel/.config/discord/settings.json
+
+###########################################
+# Fix brave bug running as root
+desktop_file2="${ROOTDIR}/customcd/files/usr/share/applications/brave-bin.desktop"
+
+if ! grep -q 'Exec=/usr/bin/brave-bin --no-sandbox' "$desktop_file"; then
+     sed -i s,'Exec=/usr/bin/brave-bin %u','Exec=/usr/bin/brave-bin --no-sandbox',g "$desktop_file2"
+fi
+
+###########################################
+# Configure to UTC
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+
 # Remove temporary files
 rm -rf ${ROOTDIR}/customcd/files/var/cache/portage/distfiles/*
 rm -rf ${ROOTDIR}/customcd/files/var/tmp/portage/*
@@ -494,6 +579,7 @@ rm -rf ${ROOTDIR}/customcd/files/root/.gitconfig
 mkdir -p ${ROOTDIR}/customcd/files/root/.ssh
 rm -rf ${ROOTDIR}/customcd/files/root/skel*
 rm -f ${ROOTDIR}/customcd/files/etc/resolv.conf
+cp ${ROOTDIR}/customcd/isoroot/boot/grub/vipnix.png ${ROOTDIR}/customcd/files/usr/share/lxqt/wallpapers/waves-logo.png
 
 umount_all
 # Create squashfs

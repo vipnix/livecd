@@ -84,13 +84,9 @@ check-needs-umounted
 rm -rf ${ROOTDIR}
 mkdir -p ${ROOTDIR}
 rm ${ROOTDIR}/stage3-latest*
-#wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
-#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/mark/stage3-x86-64bit-generic_64-mark/terragon-mark.tar.xz
-#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/2024-09-16/stage3-x86-64bit-generic_64-mark%2Bterragon-2024-09-16.tar.xz -P ${ROOTDIR}
-wget http://ip.vipnix.com.br/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz -P ${ROOTDIR}
 
-#wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
-mv ${ROOTDIR}/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
+wget https://build.funtoo.org/next/x86-64bit/generic_64/2025-01-08/stage3-generic_64-next-2025-01-08.tar.xz -P ${ROOTDIR}
+mv ${ROOTDIR}/stage3-generic_64-next-2025-01-08.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
 
 mkdir -p ${ROOTDIR}/customcd/files
 tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-latest.tar.xz -C ${ROOTDIR}/customcd/files
@@ -149,10 +145,8 @@ mkdir -p /etc/vipnix
 echo -e "PRODUCT=\"LiveCD VIPNIX\"\nID=\"livecd-vipnix-funtoo\"\nHOME_URL=\"https://vipnix.com.br\"\nBUG_REPORT_EMAIL=\"suporte@vipnix.com.br\"" > /etc/vipnix/livecd-release
 
 # update portage tree (Macaroni OS)
-
-#echo -e '[global]\nrelease = mark-iii\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
-
-#echo -e 'app-alternatives\napp-containers' > /etc/portage/categories
+echo -e '[global]\nrelease = mark-iii\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
+echo -e 'app-alternatives\napp-containers\napp-forensics\ngui-apps' > /etc/portage/categories
 
 rm -rf /var/git/meta-repo
 
@@ -174,11 +168,20 @@ echo -e "[overlay-local]\nlocation = /var/overlay/overlay-local\nauto-sync = no\
 epro mix-ins +no-systemd
 #epro mix-ins +lxqt
 epro mix-ins +pulseaudio
+epro mix-ins +lxqt
 
 rm /etc/portage/repos.conf/geaaru-kit
 
 # Configure useflags
+mkdir -p /etc/portage/package.use/
 echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/libcxxabi clang' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libpcre2-10.35-r1 static-libs' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-libs/gdk-pixbuf -test' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-auth/elogind -policykit' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-auth/consolekit -policykit' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/harfbuzz -cairo' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use/99-vipnix.use
 echo 'net-libs/gnutls tools' >> /etc/portage/package.use/99-vipnix.use
@@ -217,22 +220,24 @@ echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-
 echo '=x11-base/xorg-proto-2024.1' > /etc/portage/package.mask
 echo '=x11-proto/dri3proto-1.4-r2' >> /etc/portage/package.mask
 echo '=x11-proto/presentproto-1.4-r2' >> /etc/portage/package.mask
+echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
 
 # fix bug qemu
-#echo '>=sys-apps/openrc-0.45.1 **' > /etc/portage/package.accept_keywords
 echo 'lxqt-base/lxqt-meta **' > /etc/portage/package.accept_keywords
+echo '>=dev-cpp/pangomm-2.46.4 **' >> /etc/portage/package.accept_keywords
+#echo 'media-libs/mesa **' >> /etc/portage/package.accept_keywords
 echo 'x11-misc/pcmanfm-qt **' >> /etc/portage/package.accept_keywords
 echo 'dev-qt/qtgui **' >> /etc/portage/package.accept_keywords
 echo -e "lxqt-base/lxqt-meta **\nx11-misc/pcmanfm-qt **\ndev-qt/qtgui **\ndev-qt/qtwayland **\ndev-qt/qtdeclarative **\ndev-qt/qtwidgets **\ndev-qt/qtsvg **" >> /etc/portage/package.accept_keywords
 
 # LXQT USEFLAGS
-echo -e '>=sys-auth/consolekit-1.2.1 policykit\n>=dev-libs/glib-2.70.0-r2 dbus\n>=x11-libs/cairo-1.16.0-r4 X\n>=kde-frameworks/kwindowsystem-5.98.0 X\n>=x11-libs/libxkbcommon-1.4.1 X\n>=dev-libs/libpcre2-10.35 pcre16\n>=x11-libs/pango-1.48.11 X\n>=sys-libs/pam-1.3.1.20190226 elogind\n>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use
+echo -e '>=sys-auth/consolekit-1.2.1 policykit\n>=dev-libs/glib-2.70.0-r2 dbus\n>=x11-libs/cairo-1.16.0-r4 X\n>=kde-frameworks/kwindowsystem-5.98.0 X\n>=x11-libs/libxkbcommon-1.4.1 X\n>=dev-libs/libpcre2-10.35 pcre16\n>=x11-libs/pango-1.48.11 X\n>=sys-libs/pam-1.3.1.20190226 elogind\n>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use/99-vipnix.use
 
 # tools
-echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use
+echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use/99-vipnix.use
 
 # bugs
-echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use
+echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use/99-vipnix.use
 
 echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles\"" > /etc/portage/make.conf
 echo -e "PYTHON_TARGETS=\"python3_9\"\nPYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
@@ -259,10 +264,44 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 emerge @preserved-rebuild
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-# Update ebuilds and remove old kernel release
-#emerge -uD world --newuse --exclude gcc --exclude debian-sources
-emerge -uD world --newuse --exclude gcc --exclude debian-sources --exclude miscfiles --exclude bash-completion
+emerge -B =libxcrypt-4.4.38
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+FEATURES="-collision-detect -protect-owned" emerge -1 sys-libs/glibc
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+FEATURES="-collision-detect -protect-owned" emerge -k1 sys-libs/libxcrypt
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+ln -s /lib64/libcrypt.so.1.1.0 /lib64/libcrypt.so.1
+emerge -1 sys-devel/binutils sys-libs/binutils-libs
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge sys-devel/libtool
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge -1 sys-devel/gcc
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+gcc-config x86_64-pc-linux-gnu-13.3.0
+. /etc/profile
+
+emerge sys-devel/llvm sys-devel/clang
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge world --newuse --exclude debian-sources
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# Update ebuilds and remove old kernel release
+emerge -uD world --exclude gcc --exclude debian-sources
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+#emerge sys-apps/util-linux
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge dev-util/cmake
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
 
 # Emerge essential ebuilds
 emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/openbsd-netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-funtoo-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
@@ -276,7 +315,7 @@ emerge net-wireless/blueman x11-themes/adwaita-qt -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # X SERVER + LXQT
-emerge =lxqt-base/lxqt-meta-1.4.0 =x11-terms/qterminal-1.4.0 gnome-extra/nm-applet media-sound/pavucontrol-qt gui-apps/nm-tray app-text/evince media-gfx/lximage-qt -N
+emerge =lxqt-base/lxqt-meta-1.4.0 =x11-terms/qterminal-1.4.0 gnome-extra/nm-applet media-sound/pavucontrol-qt app-text/evince media-gfx/lximage-qt -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Tools
@@ -301,7 +340,7 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 emerge net-misc/freerdp -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest media-sound/pulseaudio-daemon
+emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest-cli media-sound/pulseaudio-daemon
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 

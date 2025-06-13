@@ -84,6 +84,12 @@ check-needs-umounted
 rm -rf ${ROOTDIR}
 mkdir -p ${ROOTDIR}
 rm ${ROOTDIR}/stage3-latest*
+#wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
+#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/mark/stage3-x86-64bit-generic_64-mark/terragon-mark.tar.xz
+#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/2024-09-16/stage3-x86-64bit-generic_64-mark%2Bterragon-2024-09-16.tar.xz -P ${ROOTDIR}
+#wget http://ip.vipnix.com.br/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz -P ${ROOTDIR}
+
+#wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
 
 wget https://build.funtoo.org/next/x86-64bit/generic_64/2025-01-08/stage3-generic_64-next-2025-01-08.tar.xz -P ${ROOTDIR}
 mv ${ROOTDIR}/stage3-generic_64-next-2025-01-08.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
@@ -146,7 +152,7 @@ echo -e "PRODUCT=\"LiveCD VIPNIX\"\nID=\"livecd-vipnix-funtoo\"\nHOME_URL=\"http
 
 # update portage tree (Macaroni OS)
 echo -e '[global]\nrelease = mark-iii\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
-echo -e 'app-alternatives\napp-containers\napp-forensics\ngui-apps' > /etc/portage/categories
+echo -e 'app-alternatives\napp-containers\napp-forensics\ngui-apps\nx11libre-base' > /etc/portage/categories
 
 rm -rf /var/git/meta-repo
 
@@ -175,7 +181,11 @@ rm /etc/portage/repos.conf/geaaru-kit
 # Configure useflags
 mkdir -p /etc/portage/package.use/
 echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
+echo 'x11-apps/mesa-progs egl gles2' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/mesa xa' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-sound/jack2 -ieee1394' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/compiler-rt-sanitizers clang' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/libcxxabi clang' >> /etc/portage/package.use/99-vipnix.use
 echo '>=dev-libs/libpcre2-10.35-r1 static-libs' >> /etc/portage/package.use/99-vipnix.use
 echo 'x11-libs/gdk-pixbuf -test' >> /etc/portage/package.use/99-vipnix.use
@@ -219,6 +229,8 @@ echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-
 # fix bug x11 geaaru repo
 echo '=x11-base/xorg-proto-2024.1' > /etc/portage/package.mask
 echo '=x11-proto/dri3proto-1.4-r2' >> /etc/portage/package.mask
+echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
+echo 'x11-base/xorg-server' >> /etc/portage/package.mask
 echo '=x11-proto/presentproto-1.4-r2' >> /etc/portage/package.mask
 echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
 
@@ -315,7 +327,7 @@ emerge net-wireless/blueman x11-themes/adwaita-qt -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # X SERVER + LXQT
-emerge =lxqt-base/lxqt-meta-1.4.0 =x11-terms/qterminal-1.4.0 gnome-extra/nm-applet media-sound/pavucontrol-qt app-text/evince media-gfx/lximage-qt -N
+emerge x11-drivers/xf86-video-vmware x11-apps/mesa-progs =lxqt-base/lxqt-meta-1.4.0 =x11-terms/qterminal-1.4.0 gnome-extra/nm-applet media-sound/pavucontrol-qt app-text/evince media-gfx/lximage-qt -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Tools

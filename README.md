@@ -23,11 +23,11 @@ Vipnix LiveCD is a portable, bootable Linux distribution built on the legacy of 
 ### Gentoo Linux
 Originally named *Enoch Linux* by Daniel Robbins in the early 2000s, Gentoo was developed to provide high-performance, hardware-optimized systems without precompiled binaries. Named after the swift Gentoo penguin, it introduced the EGCS compiler (later merged into GCC) and the modular Portage package manager, known for its flexibility and ease of maintenance.
 
-### Funtoo Linux
-Launched in 2008 by Robbins, Funtoo built on Gentoo's foundation, introducing Git-based Portage trees and tools like *metro* and *ego* to streamline user experience. Funtoo emphasized stable stage builds and modern package management. In August 2024, Robbins announced that Funtoo would transition to "hobby mode" with limited maintenance.
+### The Rise of Funtoo Linux
+Funtoo Linux, another notable project by Daniel Robbins, was conceived after his extensive experience with Gentoo. Robbins worked tirelessly to build stable stages, integrate technologies such as Git with Portage, and create tools such as Metro and ego, which further improved the user experience. Over the years, Funtoo has proven to be an agile and innovative distribution, adapting and evolving with the needs of the community. However, in August 2024, Robbins announced the closure of the project, with no possibility for any developer to keep the project alive. In short, he locked the door and threw away the key, removed everything from Funtoo that was online, and froze the mediawiki. We know that Daniel Robbins is very “sentimental”, having even banned members for making simple jokes about Biden and Ukraine. That's life, it was good while it lasted, and it was also useful for bringing people together around the world, and almost all of the former Funtoo developers are now on the MacaroniOS project.
 
 ### Macaroni OS
-Developed by Daniele Rondina, a former Sabayon Linux contributor, Macaroni OS started as a Funtoo-incubated project and became independent in 2023. It focuses on binary-based efficiency, supporting container-friendly builds with tools like *luet*, *MARK*, and *Anise*. Macaroni OS carries forward Funtoo's performance-driven philosophy with a modern approach.
+With the end of Funtoo, we migrated our LiveCD to Macaroni OS, a distribution that was born as a project incubated under Funtoo Linux and has now evolved independently. Developed by Daniele Rondina, former developer of Sabayon Linux, Macaroni OS maintains the philosophy of performance and flexibility, offering a robust and up-to-date experience. It is not a fork of Funtoo because the tools are its own, and better.
 
 ## Vipnix LiveCD: A Fusion of Legacies
 

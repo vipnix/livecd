@@ -88,14 +88,21 @@ rm ${ROOTDIR}/stage3-latest*
 #wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/mark/stage3-x86-64bit-generic_64-mark/terragon-mark.tar.xz
 #wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/2024-09-16/stage3-x86-64bit-generic_64-mark%2Bterragon-2024-09-16.tar.xz -P ${ROOTDIR}
 #wget http://ip.vipnix.com.br/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz -P ${ROOTDIR}
+#wget https://cdn77.macaronios.org/macaroni-distfiles/stage3-amd64-mark-iii-0.20250510.package.tar.zst -O ${ROOTDIR}/stage3-latest.tar.xz
 
 #wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
 
-wget https://build.funtoo.org/next/x86-64bit/generic_64/2025-01-08/stage3-generic_64-next-2025-01-08.tar.xz -P ${ROOTDIR}
-mv ${ROOTDIR}/stage3-generic_64-next-2025-01-08.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
+#wget https://build.funtoo.org/next/x86-64bit/generic_64/2025-01-08/stage3-generic_64-next-2025-01-08.tar.xz -P ${ROOTDIR}
+#mv ${ROOTDIR}/stage3-generic_64-next-2025-01-08.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
+#/livecd-vipnix/customcd/files/collections/mark/stage3-mark-iii.tar.xz
+
+
+wget https://cdn77.macaronios.org/macaroni-distfiles/stage3-amd64-mark-iii-0.20250510.package.tar.zst -O ${ROOTDIR}/stage3-latest.tar.xz
+mkdir -p ${ROOTDIR}/customcd/tmp
+tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-latest.tar.xz -C ${ROOTDIR}/customcd/tmp
 
 mkdir -p ${ROOTDIR}/customcd/files
-tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-latest.tar.xz -C ${ROOTDIR}/customcd/files
+tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/customcd/tmp/collections/mark/stage3-mark-iii.tar.xz -C ${ROOTDIR}/customcd/files
 mkdir -p ${ROOTDIR}/customcd/files/mnt/funtoo
 
 rm -rf ${ROOTDIR}/customcd/files/usr/src
@@ -152,13 +159,16 @@ echo -e "PRODUCT=\"LiveCD VIPNIX\"\nID=\"livecd-vipnix-funtoo\"\nHOME_URL=\"http
 
 # update portage tree (Macaroni OS)
 echo -e '[global]\nrelease = mark-iii\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
-echo -e 'app-alternatives\napp-containers\napp-forensics\ngui-apps\nx11libre-base' > /etc/portage/categories
+echo -e 'app-alternatives\napp-containers\napp-forensics\ngui-apps\nx11libre-base\nx11libre-drivers' > /etc/portage/categories
 
 rm -rf /var/git/meta-repo
 
 ego sync
 
+ego profile arch x86-64bit
 ego profile build mark
+ego profile subarch generic_64
+ego profile flavor desktop
 
 luet repo update
 
@@ -217,7 +227,7 @@ echo '>=app-crypt/pinentry-1.2.1 gnome-keyring' >> /etc/portage/package.use/99-v
 echo 'media-libs/libcanberra alsa' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-video/pipewire -X' >> /etc/portage/package.use/99-vipnix.use
 echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
-echo '>=media-libs/freetype-2.10.4-r1 harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/freetype-2.10.4-r1 -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
 echo '>=app-text/ghostscript-gpl-9.53.3-r2 cups' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-libs/freetype harfbuzz' >> /etc/portage/package.use/99-vipnix.use
 echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -fuse kerberos -openh264 pulseaudio -sdl server -smartcard -test usb -wayland -xv' >> /etc/portage/package.use/99-vipnix.use
@@ -251,12 +261,16 @@ echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\
 # bugs
 echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use/99-vipnix.use
 
-echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles\"" > /etc/portage/make.conf
+echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles https://distfiles.macaronios.org/mark-distfiles\"" > /etc/portage/make.conf
 echo -e "PYTHON_TARGETS=\"python3_9\"\nPYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
+echo -e "VIDEO_CARDS=\"vmware intel amdgpu\"" >> /etc/portage/make.conf
 
 EOF
 
 cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part2.sh <<EOF
+
+echo -e "127.0.0.1   livecd-vipnix localhost\n::1         livecd-vipnix localhost" > /etc/hosts
+
 . /etc/profile
 
 # fix bux
@@ -285,27 +299,24 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 FEATURES="-collision-detect -protect-owned" emerge -k1 sys-libs/libxcrypt
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-ln -s /lib64/libcrypt.so.1.1.0 /lib64/libcrypt.so.1
+#ln -s /lib64/libcrypt.so.1.1.0 /lib64/libcrypt.so.1
 emerge -1 sys-devel/binutils sys-libs/binutils-libs
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 emerge sys-devel/libtool
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge -1 sys-devel/gcc
+emerge -uD sys-devel/gcc clang
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 gcc-config x86_64-pc-linux-gnu-13.3.0
 . /etc/profile
 
-emerge sys-devel/llvm sys-devel/clang
-if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
-
 emerge world --newuse --exclude debian-sources
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Update ebuilds and remove old kernel release
-emerge -uD world --exclude gcc --exclude debian-sources
+emerge -uD world --exclude gcc --exclude debian-sources --exclude clang
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 #emerge sys-apps/util-linux

@@ -234,14 +234,12 @@ echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -f
 echo 'net-misc/rdesktop xrandr kerberos' >> /etc/portage/package.use/99-vipnix.use
 echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
-
+echo 'xlibre-base/xlibre-server -xvfb xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
+echo '>=net-dns/unbound-1.23.1-r2 threads' >> /etc/portage/package.use/99-vipnix.use
 
 # fix bug x11 geaaru repo
-echo '=x11-base/xorg-proto-2024.1' > /etc/portage/package.mask
-echo '=x11-proto/dri3proto-1.4-r2' >> /etc/portage/package.mask
 echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
 echo 'x11-base/xorg-server' >> /etc/portage/package.mask
-echo '=x11-proto/presentproto-1.4-r2' >> /etc/portage/package.mask
 echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
 
 # fix bug qemu
@@ -335,6 +333,10 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Emerge bluetooth
 emerge net-wireless/blueman x11-themes/adwaita-qt -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# monero + p2pool + xmrig
+emerge monero p2pool xmrig
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # X SERVER + LXQT

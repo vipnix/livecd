@@ -192,7 +192,7 @@ rm /etc/portage/repos.conf/geaaru-kit
 mkdir -p /etc/portage/package.use/
 echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
 echo 'x11-apps/mesa-progs egl gles2' >> /etc/portage/package.use/99-vipnix.use
-echo 'media-libs/mesa xa' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/mesa vdpau vulkan xa' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-sound/jack2 -ieee1394' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/compiler-rt-sanitizers clang' >> /etc/portage/package.use/99-vipnix.use
@@ -236,11 +236,15 @@ echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.
 echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
 echo 'xlibre-base/xlibre-server -xvfb xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
 echo '>=net-dns/unbound-1.23.1-r2 threads' >> /etc/portage/package.use/99-vipnix.use
+echo 'xlibre-drivers/nvidia-kernel-modules open-kernel' >> /etc/portage/package.use/99-vipnix.use
 
 # fix bug x11 geaaru repo
 echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
 echo 'x11-base/xorg-server' >> /etc/portage/package.mask
 echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
+echo '=dev-qt/qtwayland-6.8.3' >> /etc/portage/package.mask
+echo '=dev-qt/qttranslations-6.8.3' >> /etc/portage/package.mask
+echo '=dev-qt/qtsvg-6.8.3' >> /etc/portage/package.mask
 
 # fix bug qemu
 echo 'lxqt-base/lxqt-meta **' > /etc/portage/package.accept_keywords
@@ -261,7 +265,7 @@ echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.
 
 echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles https://distfiles.macaronios.org/mark-distfiles\"" > /etc/portage/make.conf
 echo -e "PYTHON_TARGETS=\"python3_9\"\nPYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
-echo -e "VIDEO_CARDS=\"vmware intel amdgpu\"" >> /etc/portage/make.conf
+echo -e "VIDEO_CARDS=\"vmware intel amdgpu radeonsi r200 r300 radeon nouveau r600\"" >> /etc/portage/make.conf
 
 EOF
 
@@ -365,7 +369,7 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 emerge net-misc/freerdp -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest-cli media-sound/pulseaudio-daemon
+emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest-cli media-sound/pulseaudio-daemon media-gfx/scrot
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 
@@ -491,11 +495,34 @@ rm -rf /boot/*
 rm -rf /lib/modules/*
 rm -rf /usr/src/*
 
-#emerge sys-kernel/debian-sources-lts
-#emerge debian-sources:bookworm
-#emerge =sys-kernel/debian-sources-6.10.9_p1
 emerge sys-kernel/debian-sources
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+rm /usr/bin/nvidia*
+rm /usr/share/vulkan/implicit_layer.d/nvidia_layers.json
+rm /etc/OpenCL/vendors/nvidia.icd
+rm /usr/share/vulkan/icd.d/nvidia_icd.json
+rm /usr/share/applications/nvidia-settings.desktop
+rm /usr/share/pixmaps/nvidia-settings.png
+rm /usr/share/nvidia/*
+rm /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+rm /usr/share/X11/xorg.conf.d/nvidia-drm-outputclass.conf
+rm /usr/share/dbus-1/system.d/nvidia-dbus.conf
+rm /usr/share/man/man1/nvidia*
+rm -rf /lib/modules/nvidia
+rm -rf /usr/share/doc/nvidia*
+rm /usr/lib64/xorg/modules/extensions/libglxserver_nvidia.so
+
+emerge app-admin/gpu-configurator gui-libs/egl-gbm dev-util/vulkan-headers media-libs/vulkan-loader dev-util/glslang
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge xlibre-drivers/nvidia-drivers xlibre-drivers/nvidia-kernel-modules
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+gpu-configurator nvidia kernel 580.95.05 6.12.43-debian1-mark --purge
+gpu-configurator nvidia configure 580.95.05 --force
+gpu-configurator nvidia kernel 580.95.05 6.12.43-debian1-mark --proprietary=false
+
 
 #######################################################################
 # zfs support
@@ -507,6 +534,8 @@ EOF
 #
 echo -e '# sign ZFS modules\nfor ko in $(equery f zfs-kmod|grep ko);do /usr/src/linux/scripts/sign-file sha512 /etc/kernel/certs/linux/signing_key.pem /etc/kernel/certs/linux/signing_key.x509 ${ko};done' >> ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part4.sh
 
+# sign nvidia modules
+echo -e '# sign Nvidia modules\nfor ko in $(find /lib/modules/|grep nvidia|grep ko);do /usr/src/linux/scripts/sign-file sha512 /etc/kernel/certs/linux/signing_key.pem /etc/kernel/certs/linux/signing_key.x509 ${ko};done' >> ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part4.sh
 umount_all
 }
 
@@ -562,7 +591,7 @@ check-needs-mounted
 #####################
 # Prepare user environment
 
-rm ${ROOTDIR}/customcd/files/root/${SKEL_VER}
+rm -f ${ROOTDIR}/customcd/files/root/${SKEL_VER}
 wget https://vipnix.com.br/src-livecd/files/${SKEL_VER}  -P ${ROOTDIR}/customcd/files/root ; tar xjpf ${ROOTDIR}/customcd/files/root/${SKEL_VER} -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/root/${SKEL_VER} ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
 
 
@@ -684,7 +713,8 @@ mkdir -p /boot/EFI/BOOT
 grub-mkimage --directory "/usr/lib/grub/x86_64-efi" --prefix "/boot/grub" --output "/boot/EFI/BOOT/grubx64_real.efi"  --format 'x86_64-efi' --compression 'auto' file blocklist test true regexp newc search at_keyboard usb_keyboard  gcry_md5 hashsum gzio xzio lzopio ext2 xfs read halt sleep serial terminfo png password_pbkdf2 gcry_sha512 pbkdf2 part_gpt part_msdos ls tar squash4 loopback part_apple minicmd diskfilter linux relocator jpeg iso9660 udf hfsplus halt acpi mmap gfxmenu video_colors trig bitmap_scale gfxterm bitmap font fat exfat ntfs fshelp efifwsetup reboot echo configfile normal terminal gettext chain  priority_queue bufio datetime cat extcmd crypto gzio boot all_video efi_gop efi_uga video_bochs video_cirrus video video_fb gfxterm_background gfxterm_menu zfs tpm --sbat /boot/SBAT.csv
 
 # sign kernel image
-VERSION="\$(ls /boot/kernel-debian-sources-x86_64*)"
+#VERSION="\$(ls /boot/kernel-debian-sources-x86_64*)"
+VERSION="\$(ls /boot/vmlinuz-debian-x86_64*)"
 
 rm -f /boot/kernel-funtoo
 sbsign --key /etc/kernel/certs/linux/signing_key.priv --cert /etc/kernel/certs/linux/signing_key.pem --output /boot/kernel-funtoo "\${VERSION}"
@@ -737,6 +767,9 @@ rm -f ${ROOTDIR}/customcd/isofile/vipnix-*
 
 # generate .iso file
 grub2-mkrescue -joliet -iso-level 3 -V "vipnix-livecd" -o ${ROOTDIR}/customcd/isofile/vipnix-livecd-${DATE}.iso ${ROOTDIR}/customcd/isoroot
+
+# generte md5sum + sha256sum
+cd /livecd-vipnix/customcd/isofile/ ; export VER="$(ls -1htr *iso|tail -1)" ; md5sum $VER > ${VER}.md5 ; sha256sum $VER > ${VER}.sha256 ; cd
 
 # end
 umount_all

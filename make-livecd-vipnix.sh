@@ -8,7 +8,7 @@
 # 
 ##############################################################
 
-ISOROOT_RELEASE="isoroot-livecd-vipnix-3.1.tar.bz2"
+ISOROOT_RELEASE="isoroot-livecd-vipnix-3.2.tar.bz2"
 ROOTDIR="/livecd-vipnix"
 SKEL_VER="skel-0.4.tar.bz2"
 
@@ -103,7 +103,7 @@ tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-latest
 
 mkdir -p ${ROOTDIR}/customcd/files
 tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/customcd/tmp/collections/mark/stage3-mark-iii.tar.xz -C ${ROOTDIR}/customcd/files
-mkdir -p ${ROOTDIR}/customcd/files/mnt/funtoo
+mkdir -p ${ROOTDIR}/customcd/files/mnt/vipnix
 
 rm -rf ${ROOTDIR}/customcd/files/usr/src
 
@@ -190,9 +190,57 @@ rm /etc/portage/repos.conf/geaaru-kit
 
 # Configure useflags
 mkdir -p /etc/portage/package.use/
+#echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
+#echo 'x11-apps/mesa-progs egl gles2' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/mesa vdpau vulkan xa' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-sound/jack2 -ieee1394' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/compiler-rt-sanitizers clang' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/libcxxabi clang' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/libpcre2-10.35-r1 static-libs' >> /etc/portage/package.use/99-vipnix.use
+#echo 'x11-libs/gdk-pixbuf -test' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-auth/elogind -policykit' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-auth/consolekit -policykit' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/harfbuzz -cairo' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use/99-vipnix.use
+#echo 'net-libs/gnutls tools' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-boot/syslinux -efi' >> /etc/portage/package.use/99-vipnix.use
+#echo 'app-emulation/qemu -doc' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=app-text/poppler-24.01.0 cairo' >> /etc/portage/package.use/99-vipnix.use
+#echo 'gnome-base/gvfs -ios' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-power/upower -ios' >> /etc/portage/package.use/99-vipnix.use
+#echo 'kde-frameworks/solid -ios' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-block/gparted btrfs fat hfs jfs ntfs reiserfs xfs cryptsetup dmraid f2fs -kde mdadm -policykit -reiser4 udf -wayland' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-sound/pulseaudio dbus' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/libpcre2-10.35 pcre16' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=x11-libs/libxkbcommon-1.4.1 X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=media-sound/pulseaudio-16.1 bluetooth' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/glib-2.72.0 dbus' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=kde-frameworks/kwindowsystem-5.113.0:5 X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=x11-libs/pango-1.48.11 X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-qt/qtgui-5.15.11-r2 egl' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=net-misc/networkmanager-1.52.0 elogind' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=sys-auth/consolekit-1.2.1 policykit' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=app-crypt/pinentry-1.2.1 gnome-keyring' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/libcanberra alsa' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-video/pipewire -X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=media-libs/freetype-2.10.4-r1 -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=app-text/ghostscript-gpl-9.53.3-r2 cups' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/freetype harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+#echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -fuse kerberos -openh264 pulseaudio -sdl server -smartcard -test usb -wayland -xv' >> /etc/portage/package.use/99-vipnix.use
+#echo 'net-misc/rdesktop xrandr kerberos' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
+#echo 'xlibre-base/xlibre-server -xvfb xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=net-dns/unbound-1.23.1-r2 threads' >> /etc/portage/package.use/99-vipnix.use
+#echo 'xlibre-drivers/nvidia-kernel-modules open-kernel' >> /etc/portage/package.use/99-vipnix.use
+
 echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
 echo 'x11-apps/mesa-progs egl gles2' >> /etc/portage/package.use/99-vipnix.use
-echo 'media-libs/mesa vdpau vulkan xa' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/mesa xa vulkan vdpau' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-sound/jack2 -ieee1394' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/compiler-rt-sanitizers clang' >> /etc/portage/package.use/99-vipnix.use
@@ -202,7 +250,7 @@ echo 'x11-libs/gdk-pixbuf -test' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-auth/elogind -policykit' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-auth/consolekit -policykit' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-libs/harfbuzz -cairo' >> /etc/portage/package.use/99-vipnix.use
-echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use/99-vipnix.use
 echo 'net-libs/gnutls tools' >> /etc/portage/package.use/99-vipnix.use
 echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use/99-vipnix.use
@@ -229,39 +277,96 @@ echo 'media-video/pipewire -X' >> /etc/portage/package.use/99-vipnix.use
 echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
 echo '>=media-libs/freetype-2.10.4-r1 -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
 echo '>=app-text/ghostscript-gpl-9.53.3-r2 cups' >> /etc/portage/package.use/99-vipnix.use
-echo 'media-libs/freetype harfbuzz' >> /etc/portage/package.use/99-vipnix.use
 echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -fuse kerberos -openh264 pulseaudio -sdl server -smartcard -test usb -wayland -xv' >> /etc/portage/package.use/99-vipnix.use
 echo 'net-misc/rdesktop xrandr kerberos' >> /etc/portage/package.use/99-vipnix.use
 echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.use
 echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
-echo 'xlibre-base/xlibre-server -xvfb xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
+echo '>=sys-auth/consolekit-1.2.1 policykit' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/glib-2.70.0-r2 dbus' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/cairo-1.16.0-r4 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=kde-frameworks/kwindowsystem-5.98.0 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/libxkbcommon-1.4.1 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libpcre2-10.35 pcre16' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/pango-1.48.11 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=sys-libs/pam-1.3.1.20190226 elogind' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-plugins/alsa-plugins-1.2.2 pulseaudio' >> /etc/portage/package.use/99-vipnix.use
+echo '>=net-dns/avahi-0.8 gtk' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-misc/remmina -zeroconf' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-libs/gtk+ -cups' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-print/cups -zeroconf' >> /etc/portage/package.use/99-vipnix.use
+echo 'xlibre-base/xlibre-server -xvfb nvidia xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
 echo '>=net-dns/unbound-1.23.1-r2 threads' >> /etc/portage/package.use/99-vipnix.use
 echo 'xlibre-drivers/nvidia-kernel-modules open-kernel' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-crypt/gcr-4.4.0.1-r1 gtk' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-doc/doxygen-1.9.6 dot' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/gtk+-3.24.51-r1 cups' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/sdl2-ttf -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/gst-plugins-ugly-1.26.10 a52dec mpeg2dec' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-print/libcupsfilters -pdf' >> /etc/portage/package.use/99-vipnix.use
+echo 'lxqt-base/lxqt-meta about desktop-portal display-manager filemanager nls policykit powermanagement sddm trash lximage archiver screenshot sudo terminal archiver admin processviewer' >> /etc/portage/package.use/99-vipnix.use
+echo 'dev-qt/qtbase X cups gui sql sqlite' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qt5compat-6.10.1 qml' >> /etc/portage/package.use/99-vipnix.use
+echo '>=kde-frameworks/kconfig-6.22.0 qml' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qtbase-6.10.1 vulkan libproxy wayland' >> /etc/portage/package.use/99-vipnix.use
+echo '>=virtual/kde-seed-6.22 gui declarative sql libproxy' >> /etc/portage/package.use/99-vipnix.use
+echo 'dev-qt/qtwayland qml' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-terms/qterminal wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'kde-plasma/layer-shell wayland' >> /etc/portage/package.use/99-vipnix.use
+echo '>=virtual/kde-seed-6.22 wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'kde-frameworks/kwindowsystem wayland' >> /etc/portage/package.use/99-vipnix.use
 
 # fix bug x11 geaaru repo
-echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
+#echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
+#echo 'x11-base/xorg-server' >> /etc/portage/package.mask
+#echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
+#echo '=dev-qt/qtwayland-6.8.3' >> /etc/portage/package.mask
+#echo '=dev-qt/qttranslations-6.8.3' >> /etc/portage/package.mask
+#echo '=dev-qt/qtsvg-6.8.3' >> /etc/portage/package.mask
+echo '=dev-cpp/gtkmm-3.95.1-r1' > /etc/portage/package.mask
 echo 'x11-base/xorg-server' >> /etc/portage/package.mask
 echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
 echo '=dev-qt/qtwayland-6.8.3' >> /etc/portage/package.mask
 echo '=dev-qt/qttranslations-6.8.3' >> /etc/portage/package.mask
 echo '=dev-qt/qtsvg-6.8.3' >> /etc/portage/package.mask
+echo 'sys-devel/llvm:16' >> /etc/portage/package.mask
+echo '=media-libs/dav1d-0.9.2' >> /etc/portage/package.mask
+echo '=dev-lang/vala-0.54.1-r1' >> /etc/portage/package.mask
+echo '=dev-lang/vala-0.54.1' >> /etc/portage/package.mask
+echo '=dev-python/pygobject-3.55.2' >> /etc/portage/package.mask
+echo 'x11-drivers/xf86-input-libinput' >> /etc/portage/package.mask
+echo '=xlibre-drivers/xf86-input-libinput-9999' >> /etc/portage/package.mask
+echo '=dev-cpp/cairomm-1.15.5-r1' >> /etc/portage/package.mask
+echo '=dev-cpp/cairomm-1.19.0' >> /etc/portage/package.mask
+echo '=dev-cpp/glibmm-2.86.0' >> /etc/portage/package.mask
+echo '=dev-cpp/glibmm-2.68.2' >> /etc/portage/package.mask
 
 # fix bug qemu
+#echo 'lxqt-base/lxqt-meta **' > /etc/portage/package.accept_keywords
+#echo '>=dev-cpp/pangomm-2.46.4 **' >> /etc/portage/package.accept_keywords
+##echo 'media-libs/mesa **' >> /etc/portage/package.accept_keywords
+#echo 'x11-misc/pcmanfm-qt **' >> /etc/portage/package.accept_keywords
+#echo 'dev-qt/qtgui **' >> /etc/portage/package.accept_keywords
+#echo -e "lxqt-base/lxqt-meta **\nx11-misc/pcmanfm-qt **\ndev-qt/qtgui **\ndev-qt/qtwayland **\ndev-qt/qtdeclarative **\ndev-qt/qtwidgets **\ndev-qt/qtsvg **" >> /etc/portage/package.accept_keywords
 echo 'lxqt-base/lxqt-meta **' > /etc/portage/package.accept_keywords
 echo '>=dev-cpp/pangomm-2.46.4 **' >> /etc/portage/package.accept_keywords
-#echo 'media-libs/mesa **' >> /etc/portage/package.accept_keywords
 echo 'x11-misc/pcmanfm-qt **' >> /etc/portage/package.accept_keywords
 echo 'dev-qt/qtgui **' >> /etc/portage/package.accept_keywords
-echo -e "lxqt-base/lxqt-meta **\nx11-misc/pcmanfm-qt **\ndev-qt/qtgui **\ndev-qt/qtwayland **\ndev-qt/qtdeclarative **\ndev-qt/qtwidgets **\ndev-qt/qtsvg **" >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtwayland **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtdeclarative **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtwidgets **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtsvg **' >> /etc/portage/package.accept_keywords
+echo 'xlibre-drivers/* **' >> /etc/portage/package.accept_keywords
 
 # LXQT USEFLAGS
-echo -e '>=sys-auth/consolekit-1.2.1 policykit\n>=dev-libs/glib-2.70.0-r2 dbus\n>=x11-libs/cairo-1.16.0-r4 X\n>=kde-frameworks/kwindowsystem-5.98.0 X\n>=x11-libs/libxkbcommon-1.4.1 X\n>=dev-libs/libpcre2-10.35 pcre16\n>=x11-libs/pango-1.48.11 X\n>=sys-libs/pam-1.3.1.20190226 elogind\n>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use/99-vipnix.use
+#echo -e '>=sys-auth/consolekit-1.2.1 policykit\n>=dev-libs/glib-2.70.0-r2 dbus\n>=x11-libs/cairo-1.16.0-r4 X\n>=kde-frameworks/kwindowsystem-5.98.0 X\n>=x11-libs/libxkbcommon-1.4.1 X\n>=dev-libs/libpcre2-10.35 pcre16\n>=x11-libs/pango-1.48.11 X\n>=sys-libs/pam-1.3.1.20190226 elogind\n>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use/99-vipnix.use
 
 # tools
-echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use/99-vipnix.use
+#echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use/99-vipnix.use
 
 # bugs
-echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use/99-vipnix.use
+#echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use/99-vipnix.use
 
 echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles https://distfiles.macaronios.org/mark-distfiles\"" > /etc/portage/make.conf
 echo -e "PYTHON_TARGETS=\"python3_9\"\nPYTHON_SINGLE_TARGET=\"python3_9\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
@@ -329,7 +434,7 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 
 # Emerge essential ebuilds
-emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/openbsd-netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-funtoo-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
+emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/openbsd-netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/fchroot sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-vipnix-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 emerge @preserved-rebuild
@@ -369,7 +474,13 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 emerge net-misc/freerdp -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest-cli media-sound/pulseaudio-daemon media-gfx/scrot
+emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest-cli media-sound/pulseaudio-daemon media-gfx/scrot media-gfx/gnome-screenshot
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge nvidia-cuda-toolkit
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+SANDBOX_PREDICT="/proc/self/task:/proc/thread-self" emerge app-ai/ollama
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 
@@ -512,17 +623,30 @@ rm /usr/share/man/man1/nvidia*
 rm -rf /lib/modules/nvidia
 rm -rf /usr/share/doc/nvidia*
 rm /usr/lib64/xorg/modules/extensions/libglxserver_nvidia.so
+rm -rf /lib/modules/nvidia-open /lib/modules/*/video/nvidia*
 
 emerge app-admin/gpu-configurator gui-libs/egl-gbm dev-util/vulkan-headers media-libs/vulkan-loader dev-util/glslang
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-emerge xlibre-drivers/nvidia-drivers xlibre-drivers/nvidia-kernel-modules
+emerge xlibre-drivers/nvidia-kernel-modules
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
-gpu-configurator nvidia kernel 580.95.05 6.12.43-debian1-mark --purge
-gpu-configurator nvidia configure 580.95.05 --force
-gpu-configurator nvidia kernel 580.95.05 6.12.43-debian1-mark --proprietary=false
+emerge xlibre-drivers/nvidia-drivers
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
+# 6.18.15_p1-r400:forky
+#gpu-configurator nvidia kernel 595.45.04 6.18.15-r400-debian1-mark --purge
+#gpu-configurator nvidia configure 595.45.04 --force
+#gpu-configurator nvidia kernel 595.45.04 6.18.15-r400-debian1-mark --proprietary=false
+#ln -s /opt/nvidia/nvidia-drivers-595.45.04/lib64/xorg/modules/drivers/nvidia_drv.so /usr/lib64/xorg/modules/xlibre-25/drivers
+
+# Latest
+NVIDIA_VER="$(qlist -ICv xlibre-drivers/nvidia-drivers | sed 's|.*/nvidia-drivers-||' | sed 's|-r[0-9]\+$||' | tail -n1)"
+KERNEL_VER="$(ls -1 /lib/modules | grep debian | sort -V | tail -n1)"
+gpu-configurator nvidia kernel ${NVIDIA_VER} ${KERNEL_VER} --purge
+gpu-configurator nvidia configure ${NVIDIA_VER} --force
+gpu-configurator nvidia kernel ${NVIDIA_VER} ${KERNEL_VER} --proprietary=false
+ln -sf /opt/nvidia/nvidia-drivers-${NVIDIA_VER}/lib64/xorg/modules/drivers/nvidia_drv.so /usr/lib64/xorg/modules/xlibre-25/drivers
 
 #######################################################################
 # zfs support

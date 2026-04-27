@@ -453,6 +453,10 @@ if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 emerge x11-drivers/xf86-video-vmware x11-apps/mesa-progs =lxqt-base/lxqt-meta-1.4.0 =x11-terms/qterminal-1.4.0 gnome-extra/nm-applet media-sound/pavucontrol-qt app-text/evince media-gfx/lximage-qt -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
+# benchmark
+emerge app-benchmarks/glmark2 app-benchmarks/vkmark -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
 # Tools
 emerge sys-block/gparted www-client/brave-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m net-im/discord-bin net-im/telegram-desktop-bin  -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi

@@ -317,6 +317,8 @@ echo 'kde-plasma/layer-shell wayland' >> /etc/portage/package.use/99-vipnix.use
 echo '>=virtual/kde-seed-6.22 wayland' >> /etc/portage/package.use/99-vipnix.use
 echo 'kde-frameworks/kwindowsystem wayland' >> /etc/portage/package.use/99-vipnix.use
 echo 'app-benchmarks/glmark2 X drm opengl -egl -gbm gles2 -wayland' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/vulkan-loader-1.4.328.1 wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'app-benchmarks/vkmark X drm' >> /etc/portage/package.use/99-vipnix.use
 
 # fix bug x11 geaaru repo
 #echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
@@ -458,7 +460,7 @@ emerge app-benchmarks/glmark2 app-benchmarks/vkmark -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # Tools
-emerge sys-block/gparted www-client/brave-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m net-im/discord-bin net-im/telegram-desktop-bin  -N
+emerge sys-block/gparted www-client/brave-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m net-im/discord-bin net-im/telegram-desktop-bin sys-apps/lm_sensors dev-util/vulkan-tools -N
 if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
 
 # net tools

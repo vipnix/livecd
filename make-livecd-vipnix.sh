@@ -316,6 +316,7 @@ echo 'x11-terms/qterminal wayland' >> /etc/portage/package.use/99-vipnix.use
 echo 'kde-plasma/layer-shell wayland' >> /etc/portage/package.use/99-vipnix.use
 echo '>=virtual/kde-seed-6.22 wayland' >> /etc/portage/package.use/99-vipnix.use
 echo 'kde-frameworks/kwindowsystem wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'app-benchmarks/glmark2 X drm opengl -egl -gbm gles2 -wayland' >> /etc/portage/package.use/99-vipnix.use
 
 # fix bug x11 geaaru repo
 #echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask

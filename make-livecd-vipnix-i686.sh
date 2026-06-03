@@ -1,0 +1,1332 @@
+#!/bin/bash
+
+# Requirements to run this script onFuntoo/Gentoo:
+# # emerge cdrtools squashfs-tools isomaster libisoburn mtools
+#
+# Requirements to run this script on Opensuse Tumbleweed:
+# # zypper in squashfs-tools-ng libisoburn1 mtools mkisofs syslinux xorriso squashfs
+# 
+##############################################################
+
+ISOROOT_RELEASE="isoroot-livecd-vipnix-3.2.tar.bz2"
+ROOTDIR="/livecd-vipnix"
+SKEL_VER="skel-0.5.tar.bz2"
+
+############################################################################################
+
+check-mount(){
+CHECK="$(mount|grep "${ROOTDIR}/"|wc -l)"
+#CHECK=1
+}
+
+umount_all(){
+	check-mount
+	if [ "${CHECK}" -ne 0 ]; then
+		umount ${ROOTDIR}/customcd/files/lib/firmware ${ROOTDIR}/customcd/files/lib/modules ${ROOTDIR}/customcd/files/proc ${ROOTDIR}/customcd/files/sys ${ROOTDIR}/customcd/files/var/cache/portage ${ROOTDIR}/customcd/files/var/git ${ROOTDIR}/customcd/files/var/overlay ${ROOTDIR}/customcd/files/usr/src
+		umount -R ${ROOTDIR}/customcd/files/dev 2> /dev/null
+	fi
+}
+check-needs-umounted(){
+	check-mount
+	if [ "${CHECK}" -eq 0 ]; then
+		echo "nenhum disco montado"
+		umount_all
+	else
+		echo "ERRO: disco montado, saindo..."
+		exit 1
+	fi
+}
+
+check-needs-mounted(){
+	umount_all
+	check-mount
+	if [ "${CHECK}" -eq 0 ]; then echo "montando disco..."
+		umount_all
+		mkdir -p ${ROOTDIR}/dir-custom/portage-chroot ${ROOTDIR}/customcd/files/var/cache/portage
+		mkdir -p ${ROOTDIR}/dir-custom/lib-firmware ${ROOTDIR}/customcd/files/lib/firmware
+		mkdir -p ${ROOTDIR}/dir-custom/lib-modules ${ROOTDIR}/customcd/files/lib/modules
+		mkdir -p ${ROOTDIR}/dir-custom/meta-repo ${ROOTDIR}/customcd/files/var/git
+		mkdir -p ${ROOTDIR}/dir-custom/var-overlay-local ${ROOTDIR}/customcd/files/var/overlay
+		mkdir -p ${ROOTDIR}/dir-custom/kernel-usr-src ${ROOTDIR}/customcd/files/usr/src
+		mount -o bind ${ROOTDIR}/dir-custom/portage-chroot ${ROOTDIR}/customcd/files/var/cache/portage
+		mount -o bind ${ROOTDIR}/dir-custom/lib-firmware ${ROOTDIR}/customcd/files/lib/firmware
+		mount -o bind ${ROOTDIR}/dir-custom/lib-modules ${ROOTDIR}/customcd/files/lib/modules
+		mount -o bind ${ROOTDIR}/dir-custom/meta-repo/ ${ROOTDIR}/customcd/files/var/git
+		mount -o bind ${ROOTDIR}/dir-custom/var-overlay-local ${ROOTDIR}/customcd/files/var/overlay
+		mount -o bind ${ROOTDIR}/dir-custom/kernel-usr-src ${ROOTDIR}/customcd/files/usr/src
+		#cd ${ROOTDIR}/customcd/files/ ; mount -o bind /proc/ proc ; mount -o bind /sys sys
+		#mount --rbind /dev dev
+		#mount --make-rslave dev
+		#echo 'nameserver 8.8.8.8' > ${ROOTDIR}/customcd/files/etc/resolv.conf
+	fi
+
+	check-mount
+	if [ "${CHECK}" -eq 0 ]; then
+		echo "ERRO: nenhum disco montado, saindo"
+		exit 1
+	fi
+}
+
+############################################################################################
+
+stage1(){
+# Path of the file to be checked (Check if the file exists)
+
+if [ -f "${ROOTDIR}/customcd/files/etc/issue" ]; then
+    echo "Erro: Remova o diretório ${ROOTDIR} para iniciar o stage1."
+    exit 1
+fi
+
+umount_all
+#####################
+check-needs-umounted
+#####################
+
+# Get and extract stage3 (generic 64)
+rm -rf ${ROOTDIR}
+mkdir -p ${ROOTDIR}
+rm ${ROOTDIR}/stage3-*
+#wget https://build.funtoo.org/next/x86-64bit/generic_64/stage3-latest.tar.xz -P ${ROOTDIR}
+#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/mark/stage3-x86-64bit-generic_64-mark/terragon-mark.tar.xz
+#wget https://mark-os.macaronios.org/mark-stages-terragon/terragon/mark/x86-64bit/generic_64/2024-09-16/stage3-x86-64bit-generic_64-mark%2Bterragon-2024-09-16.tar.xz -P ${ROOTDIR}
+#wget http://ip.vipnix.com.br/stage3-x86-64bit-generic_64-mark+terragon-2024-09-16.tar.xz -P ${ROOTDIR}
+#wget https://cdn77.macaronios.org/macaroni-distfiles/stage3-amd64-mark-iii-0.20250510.package.tar.zst -O ${ROOTDIR}/stage3-latest.tar.xz
+
+#wget https://vipnix.com.br/src-livecd/files/stage3-latest.tar.xz -P ${ROOTDIR}
+
+#wget https://build.funtoo.org/next/x86-64bit/generic_64/2025-01-08/stage3-generic_64-next-2025-01-08.tar.xz -P ${ROOTDIR}
+#mv ${ROOTDIR}/stage3-generic_64-next-2025-01-08.tar.xz ${ROOTDIR}/stage3-latest.tar.xz
+#/livecd-vipnix/customcd/files/collections/mark/stage3-mark-iii.tar.xz
+
+
+#wget https://cdn77.macaronios.org/macaroni-distfiles/stage3-amd64-mark-iii-0.20250510.package.tar.zst -O ${ROOTDIR}/stage3-latest.tar.xz
+cp /root/stage3-final-i686.tar ${ROOTDIR}
+#mkdir -p ${ROOTDIR}/customcd/tmp
+
+mkdir -p ${ROOTDIR}/customcd/files
+#tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/customcd/tmp/collections/mark/stage3-mark-iii.tar.xz -C ${ROOTDIR}/customcd/files
+tar  --numeric-owner --xattrs --xattrs-include='*' -xpf ${ROOTDIR}/stage3-final-i686.tar -C ${ROOTDIR}/customcd/files
+
+mkdir -p ${ROOTDIR}/customcd/files/mnt/vipnix
+
+rm -rf ${ROOTDIR}/customcd/files/usr/src
+
+mkdir -p ${ROOTDIR}/customcd/files/var/cache/portage ${ROOTDIR}/dir-custom/portage-chroot
+mount -o bind ${ROOTDIR}/dir-custom/portage-chroot ${ROOTDIR}/customcd/files/var/cache/portage
+
+mkdir -p ${ROOTDIR}/customcd/files/lib/firmware ${ROOTDIR}/dir-custom/lib-firmware
+mount -o bind ${ROOTDIR}/dir-custom/lib-firmware ${ROOTDIR}/customcd/files/lib/firmware
+
+mkdir -p ${ROOTDIR}/customcd/files/lib/modules ${ROOTDIR}/dir-custom/lib-modules
+mount -o bind ${ROOTDIR}/dir-custom/lib-modules ${ROOTDIR}/customcd/files/lib/modules
+
+mkdir -p ${ROOTDIR}/dir-custom/meta-repo ${ROOTDIR}/customcd/files/var/git
+mount -o bind ${ROOTDIR}/dir-custom/meta-repo/ ${ROOTDIR}/customcd/files/var/git
+
+mkdir -p ${ROOTDIR}/dir-custom/var-overlay-local ${ROOTDIR}/customcd/files/var/overlay
+mount -o bind ${ROOTDIR}/dir-custom/var-overlay-local/ ${ROOTDIR}/customcd/files/var/overlay
+
+mkdir -p ${ROOTDIR}/dir-custom/kernel-usr-src ${ROOTDIR}/customcd/files/usr/src
+mount -o bind ${ROOTDIR}/dir-custom/kernel-usr-src ${ROOTDIR}/customcd/files/usr/src
+
+#cd ${ROOTDIR}/customcd/files/ ; mount -o bind /proc/ proc ; mount -o bind /sys sys
+#mount --rbind /dev dev
+#mount --make-rslave dev
+
+# Configure network and use the chroot
+cp /etc/resolv.conf ${ROOTDIR}/customcd/files/etc/
+
+umount_all
+}
+
+############################################################################################
+
+stage2(){
+
+#####################
+check-needs-mounted
+#####################
+echo "creating scripts to run into chroot..."
+
+# Creating scripts to run into chroot
+#
+rm -f ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot*.sh
+cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part1.sh <<EOF
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+
+. /etc/profile
+
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+
+gcc-config 1
+env-update
+. /etc/profile
+ldconfig
+echo "RUNNING SCRIPT INTO MCHROOT..."
+set -x
+
+mkdir -p /root/.ssh
+chown -R root:root /root
+chmod -R 700 /root/.ssh
+
+mkdir -p /etc/vipnix
+
+echo -e "PRODUCT=\"LiveCD VIPNIX\"\nID=\"livecd-vipnix-funtoo\"\nHOME_URL=\"https://vipnix.com.br\"\nBUG_REPORT_EMAIL=\"suporte@vipnix.com.br\"" > /etc/vipnix/livecd-release
+
+# update portage tree (Macaroni OS)
+echo -e '[global]\nrelease = mark-iii\npython_kit_profile = mark\nsync_base_url = https://github.com/macaroni-os/{repo}' > /etc/ego.conf
+echo -e 'app-alternatives\napp-containers\napp-forensics\ngui-apps\nxlibre-base\nxlibre-drivers' > /etc/portage/categories
+
+rm -rf /var/git/meta-repo
+
+ego sync
+
+ego profile arch x86-32bit
+ego profile mix-ins -kernel-sid
+ego profile mix-ins +kernel-bookworm
+ego profile build mark
+ego profile subarch pentium4
+ego profile flavor desktop
+
+luet repo update
+
+
+mkdir -p /var/overlay ; cd /var/overlay
+rm -rf coffnix-ebuilds
+rm -rf /var/overlay/overlay-local
+git clone https://github.com/coffnix/coffnix-ebuilds.git
+mv /var/overlay/coffnix-ebuilds /var/overlay/overlay-local
+echo -e "[overlay-local]\nlocation = /var/overlay/overlay-local\nauto-sync = no\npriority = 10" > /etc/portage/repos.conf/overlay-local.conf
+
+# Configure livecd profile
+epro mix-ins +no-systemd
+#epro mix-ins +lxqt
+epro mix-ins +pulseaudio
+epro mix-ins +lxqt
+
+rm /etc/portage/repos.conf/geaaru-kit
+
+# Configure useflags
+rm -rf /etc/portage/package.use
+mkdir -p /etc/portage/package.use/
+#echo 'sys-kernel/debian-sources logo -lvm sign-modules'  > /etc/portage/package.use/99-vipnix.use
+#echo 'x11-apps/mesa-progs egl gles2' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/mesa vdpau vulkan xa' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-sound/jack2 -ieee1394' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/compiler-rt-sanitizers clang' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/libcxxabi clang' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/libpcre2-10.35-r1 static-libs' >> /etc/portage/package.use/99-vipnix.use
+#echo 'x11-libs/gdk-pixbuf -test' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-auth/elogind -policykit' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-auth/consolekit -policykit' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/harfbuzz -cairo' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules'  >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use/99-vipnix.use
+#echo 'net-libs/gnutls tools' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-boot/syslinux -efi' >> /etc/portage/package.use/99-vipnix.use
+#echo 'app-emulation/qemu -doc' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=app-text/poppler-24.01.0 cairo' >> /etc/portage/package.use/99-vipnix.use
+#echo 'gnome-base/gvfs -ios' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-power/upower -ios' >> /etc/portage/package.use/99-vipnix.use
+#echo 'kde-frameworks/solid -ios' >> /etc/portage/package.use/99-vipnix.use
+#echo 'sys-block/gparted btrfs fat hfs jfs ntfs reiserfs xfs cryptsetup dmraid f2fs -kde mdadm -policykit -reiser4 udf -wayland' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-sound/pulseaudio dbus' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/libpcre2-10.35 pcre16' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=x11-libs/libxkbcommon-1.4.1 X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=media-sound/pulseaudio-16.1 bluetooth' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/glib-2.72.0 dbus' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=kde-frameworks/kwindowsystem-5.113.0:5 X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=x11-libs/pango-1.48.11 X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-qt/qtgui-5.15.11-r2 egl' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=net-misc/networkmanager-1.52.0 elogind' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=sys-auth/consolekit-1.2.1 policykit' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=app-crypt/pinentry-1.2.1 gnome-keyring' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/libcanberra alsa' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-video/pipewire -X' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=media-libs/freetype-2.10.4-r1 -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=app-text/ghostscript-gpl-9.53.3-r2 cups' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-libs/freetype harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+#echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -fuse kerberos -openh264 pulseaudio -sdl server -smartcard -test usb -wayland -xv' >> /etc/portage/package.use/99-vipnix.use
+#echo 'net-misc/rdesktop xrandr kerberos' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.use
+#echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
+#echo 'xlibre-base/xlibre-server -xvfb xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
+#echo '>=net-dns/unbound-1.23.1-r2 threads' >> /etc/portage/package.use/99-vipnix.use
+#echo 'xlibre-drivers/nvidia-kernel-modules open-kernel' >> /etc/portage/package.use/99-vipnix.use
+
+echo 'sys-kernel/debian-sources logo lvm sign-modules zfs luks mdadm btrfs' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-apps/mesa-progs egl gles2' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/mesa xa vulkan vdpau' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/libcxx clang' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-sound/jack2 -ieee1394' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/compiler-rt-sanitizers clang' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/libcxxabi clang' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libpcre2-10.35-r1 static-libs' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-libs/gdk-pixbuf -test' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-auth/elogind -policykit' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-auth/consolekit -policykit' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/harfbuzz -cairo' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-kernel/debian-sources-lts logo -lvm sign-modules' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-boot/refind btrfs hfs ntfs reiserfs' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-libs/gnutls tools' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-libs/ncurses tinfo' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-boot/syslinux -efi' >> /etc/portage/package.use/99-vipnix.use
+echo 'app-emulation/qemu -doc' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-text/poppler-24.01.0 cairo' >> /etc/portage/package.use/99-vipnix.use
+echo 'gnome-base/gvfs -ios' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-power/upower -ios' >> /etc/portage/package.use/99-vipnix.use
+echo 'kde-frameworks/solid -ios' >> /etc/portage/package.use/99-vipnix.use
+echo 'sys-block/gparted btrfs fat hfs jfs ntfs reiserfs xfs cryptsetup dmraid f2fs -kde mdadm -policykit -reiser4 udf -wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-sound/pulseaudio dbus' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libpcre2-10.35 pcre16' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/libxkbcommon-1.4.1 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-sound/pulseaudio-16.1 bluetooth' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/glib-2.72.0 dbus' >> /etc/portage/package.use/99-vipnix.use
+echo '>=kde-frameworks/kwindowsystem-5.113.0:5 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/pango-1.48.11 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qtgui-5.15.11-r2 egl' >> /etc/portage/package.use/99-vipnix.use
+echo '>=net-misc/networkmanager-1.52.0 elogind' >> /etc/portage/package.use/99-vipnix.use
+echo '>=sys-auth/consolekit-1.2.1 policykit' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-crypt/pinentry-1.2.1 gnome-keyring' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/libcanberra alsa' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-video/pipewire -X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/freetype-2.10.4-r1 -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-text/ghostscript-gpl-9.53.3-r2 cups' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-misc/freerdp X alsa cups ffmpeg gstreamer jpeg xinerama -debug -doc -fuse kerberos -openh264 pulseaudio -sdl server -smartcard -test usb -wayland -xv' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-misc/rdesktop xrandr kerberos' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/libpulse-17.0-r1 glib' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-sound/pulseaudio-daemon system-wide' >> /etc/portage/package.use/99-vipnix.use
+echo '>=sys-auth/consolekit-1.2.1 policykit' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/glib-2.70.0-r2 dbus' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/cairo-1.16.0-r4 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=kde-frameworks/kwindowsystem-5.98.0 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/libxkbcommon-1.4.1 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libpcre2-10.35 pcre16' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/pango-1.48.11 X' >> /etc/portage/package.use/99-vipnix.use
+echo '>=sys-libs/pam-1.3.1.20190226 elogind' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-plugins/alsa-plugins-1.2.2 pulseaudio' >> /etc/portage/package.use/99-vipnix.use
+echo '>=net-dns/avahi-0.8 gtk' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-libs/libdbusmenu-16.04.0-r1 gtk3' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-misc/remmina -zeroconf' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-libs/gtk+ -cups' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-print/cups -zeroconf' >> /etc/portage/package.use/99-vipnix.use
+echo 'xlibre-base/xlibre-server -xvfb nvidia xorg xephyr elogind udev' >> /etc/portage/package.use/99-vipnix.use
+echo '>=net-dns/unbound-1.23.1-r2 threads' >> /etc/portage/package.use/99-vipnix.use
+echo 'xlibre-drivers/nvidia-kernel-modules open-kernel' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-crypt/gcr-4.4.0.1-r1 gtk' >> /etc/portage/package.use/99-vipnix.use
+echo '>=app-doc/doxygen-1.9.6 dot' >> /etc/portage/package.use/99-vipnix.use
+echo '>=x11-libs/gtk+-3.24.51-r1 cups' >> /etc/portage/package.use/99-vipnix.use
+echo 'media-libs/sdl2-ttf -harfbuzz' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/gst-plugins-ugly-1.26.10 a52dec mpeg2dec' >> /etc/portage/package.use/99-vipnix.use
+echo 'net-print/libcupsfilters -pdf' >> /etc/portage/package.use/99-vipnix.use
+echo 'lxqt-base/lxqt-meta about desktop-portal display-manager filemanager nls policykit powermanagement sddm trash lximage archiver screenshot sudo terminal archiver admin processviewer' >> /etc/portage/package.use/99-vipnix.use
+echo 'dev-qt/qtbase X cups gui sql sqlite' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qt5compat-6.10.1 qml' >> /etc/portage/package.use/99-vipnix.use
+echo '>=kde-frameworks/kconfig-6.22.0 qml' >> /etc/portage/package.use/99-vipnix.use
+echo '>=dev-qt/qtbase-6.10.1 vulkan libproxy wayland' >> /etc/portage/package.use/99-vipnix.use
+echo '>=virtual/kde-seed-6.22 gui declarative sql libproxy' >> /etc/portage/package.use/99-vipnix.use
+echo 'dev-qt/qtwayland qml' >> /etc/portage/package.use/99-vipnix.use
+echo 'x11-terms/qterminal wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'kde-plasma/layer-shell wayland' >> /etc/portage/package.use/99-vipnix.use
+echo '>=virtual/kde-seed-6.22 wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'kde-frameworks/kwindowsystem wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'app-benchmarks/glmark2 X drm opengl -egl -gbm gles2 -wayland' >> /etc/portage/package.use/99-vipnix.use
+echo '>=media-libs/vulkan-loader-1.4.328.1 wayland' >> /etc/portage/package.use/99-vipnix.use
+echo 'app-benchmarks/vkmark X drm' >> /etc/portage/package.use/99-vipnix.use
+echo -e '>=kde-frameworks/kguiaddons-6.22.0-r1 wayland\n>=kde-frameworks/kidletime-6.22.0 wayland' >> /etc/portage/package.use/99-vipnix.use
+
+# fix bug x11 geaaru repo
+#echo '=dev-cpp/gtkmm-3.95.1-r1' >> /etc/portage/package.mask
+#echo 'x11-base/xorg-server' >> /etc/portage/package.mask
+#echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
+#echo '=dev-qt/qtwayland-6.8.3' >> /etc/portage/package.mask
+#echo '=dev-qt/qttranslations-6.8.3' >> /etc/portage/package.mask
+#echo '=dev-qt/qtsvg-6.8.3' >> /etc/portage/package.mask
+echo '=dev-cpp/gtkmm-3.95.1-r1' > /etc/portage/package.mask
+echo 'x11-base/xorg-server' >> /etc/portage/package.mask
+echo 'dev-lang/python:3.10' >> /etc/portage/package.mask
+echo '=dev-qt/qtwayland-6.8.3' >> /etc/portage/package.mask
+echo '=dev-qt/qttranslations-6.8.3' >> /etc/portage/package.mask
+echo '=dev-qt/qtsvg-6.8.3' >> /etc/portage/package.mask
+echo 'sys-devel/llvm:16' >> /etc/portage/package.mask
+echo '=media-libs/dav1d-0.9.2' >> /etc/portage/package.mask
+echo '=dev-lang/vala-0.54.1-r1' >> /etc/portage/package.mask
+echo '=dev-lang/vala-0.54.1' >> /etc/portage/package.mask
+echo '=dev-python/pygobject-3.55.2' >> /etc/portage/package.mask
+echo 'x11-drivers/xf86-input-libinput' >> /etc/portage/package.mask
+echo '=xlibre-drivers/xf86-input-libinput-9999' >> /etc/portage/package.mask
+echo '=dev-cpp/cairomm-1.15.5-r1' >> /etc/portage/package.mask
+echo '=dev-cpp/cairomm-1.19.0' >> /etc/portage/package.mask
+echo '=dev-cpp/glibmm-2.86.0' >> /etc/portage/package.mask
+echo '=dev-cpp/glibmm-2.68.2' >> /etc/portage/package.mask
+echo '=net-misc/curl-8.18.0' >> /etc/portage/package.mask
+echo '=net-p2p/p2pool-9999' >> /etc/portage/package.mask
+echo '=net-misc/xmrig-9999' >> /etc/portage/package.mask
+echo '=dev-qt/qtwayland-6.8.3' >> /etc/portage/package.mask
+echo '=dev-qt/qttranslations-6.8.3' >> /etc/portage/package.mask
+echo '=dev-qt/qtsvg-6.8.3' >> /etc/portage/package.mask
+echo '>=dev-qt/qtbase-6.10.2-r1' >> /etc/portage/package.mask
+echo '>=dev-qt/qtwayland-6.10.2' >> /etc/portage/package.mask
+echo '=lxqt-base/lxqt-menu-data-1.4.1' >> /etc/portage/package.mask
+echo '=x11-libs/qtermwidget-1.4.0' >> /etc/portage/package.mask
+
+# fix bug qemu
+#echo 'lxqt-base/lxqt-meta **' > /etc/portage/package.accept_keywords
+#echo '>=dev-cpp/pangomm-2.46.4 **' >> /etc/portage/package.accept_keywords
+##echo 'media-libs/mesa **' >> /etc/portage/package.accept_keywords
+#echo 'x11-misc/pcmanfm-qt **' >> /etc/portage/package.accept_keywords
+#echo 'dev-qt/qtgui **' >> /etc/portage/package.accept_keywords
+#echo -e "lxqt-base/lxqt-meta **\nx11-misc/pcmanfm-qt **\ndev-qt/qtgui **\ndev-qt/qtwayland **\ndev-qt/qtdeclarative **\ndev-qt/qtwidgets **\ndev-qt/qtsvg **" >> /etc/portage/package.accept_keywords
+echo 'lxqt-base/lxqt-meta **' > /etc/portage/package.accept_keywords
+echo '>=dev-cpp/pangomm-2.46.4 **' >> /etc/portage/package.accept_keywords
+echo 'x11-misc/pcmanfm-qt **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtgui **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtwayland **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtdeclarative **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtwidgets **' >> /etc/portage/package.accept_keywords
+echo 'dev-qt/qtsvg **' >> /etc/portage/package.accept_keywords
+echo 'xlibre-drivers/* **' >> /etc/portage/package.accept_keywords
+
+# LXQT USEFLAGS
+#echo -e '>=sys-auth/consolekit-1.2.1 policykit\n>=dev-libs/glib-2.70.0-r2 dbus\n>=x11-libs/cairo-1.16.0-r4 X\n>=kde-frameworks/kwindowsystem-5.98.0 X\n>=x11-libs/libxkbcommon-1.4.1 X\n>=dev-libs/libpcre2-10.35 pcre16\n>=x11-libs/pango-1.48.11 X\n>=sys-libs/pam-1.3.1.20190226 elogind\n>=dev-qt/qtgui-5.15.2_p20231118 egl' >> /etc/portage/package.use/99-vipnix.use
+
+# tools
+#echo -e ">=media-plugins/alsa-plugins-1.2.2 pulseaudio\n>=net-dns/avahi-0.8 gtk\n>=dev-libs/libdbusmenu-16.04.0-r1 gtk3\nnet-misc/remmina -zeroconf" >> /etc/portage/package.use/99-vipnix.use
+
+# bugs
+#echo -e "x11-libs/gtk+ -cups\nnet-print/cups -zeroconf" >> /etc/portage/package.use/99-vipnix.use
+
+echo -e "#LIVECD\nFEATURES=\"-colision-detect -protect-owned\"\nACCEPT_LICENSE=\"*\"\nGENTOO_MIRRORS=\"https://distfiles.macaronios.org https://dl.macaronios.org/repos/distfiles https://distfiles.macaronios.org/mark-distfiles\"" > /etc/portage/make.conf
+echo -e "PYTHON_TARGETS=\"python3_10\"\nPYTHON_SINGLE_TARGET=\"python3_10\"\nLANG=\"en_US.UTF-8\"\nLC_ALL=\"en_US.UTF-8\"" >> /etc/portage/make.conf
+echo -e "VIDEO_CARDS=\"vmware intel amdgpu radeonsi r200 r300 radeon nouveau r600\"" >> /etc/portage/make.conf
+
+EOF
+
+cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part2.sh <<EOF
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+
+. /etc/profile
+
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+
+gcc-config 1
+env-update
+. /etc/profile
+ldconfig
+echo "RUNNING SCRIPT INTO MCHROOT..."
+
+echo -e "127.0.0.1   livecd-vipnix localhost\n::1         livecd-vipnix localhost" > /etc/hosts
+
+. /etc/profile
+
+# fix bux
+#emerge app-shells/bash-completion -N
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge libtool
+emerge app-arch/xz-utils
+
+emerge doxygen -1 --nodeps -N
+emerge dev-libs/libxml2 -N
+emerge net-print/libcupsfilters -N
+emerge net-print/libppd -N
+emerge media-libs/gst-plugins-base -N
+emerge media-libs/faac -N
+emerge app-crypt/gcr -N
+emerge app-crypt/gcr:0 -N
+emerge -1 --nodeps dev-python/libxml2-python -N
+# dep app-crypt/nwipe fix bug
+emerge dev-libs/libconfig -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge dev-util/cmake -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge dev-python/packaging -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge @preserved-rebuild
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge -B =libxcrypt-4.4.38
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+FEATURES="-collision-detect -protect-owned" emerge -1 sys-libs/glibc
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+FEATURES="-collision-detect -protect-owned" emerge -k1 sys-libs/libxcrypt
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+#ln -s /lib64/libcrypt.so.1.1.0 /lib64/libcrypt.so.1
+emerge -1 sys-devel/binutils sys-libs/binutils-libs
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge sys-devel/libtool
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge -uD sys-devel/gcc clang
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+gcc-config 1
+. /etc/profile
+
+emerge world --newuse --exclude debian-sources
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# Update ebuilds and remove old kernel release
+emerge -uD world --exclude gcc --exclude debian-sources --exclude clang
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+#emerge sys-apps/util-linux
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge dev-util/cmake
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+
+# Emerge essential ebuilds
+emerge -N sys-kernel/linux-firmware app-misc/livecd-tools app-admin/testdisk app-arch/unrar app-arch/zip app-backup/fsarchiver app-editors/hexedit app-editors/joe app-editors/vim app-editors/zile app-misc/jq app-portage/genlop dev-libs/libxml2 net-analyzer/openbsd-netcat net-analyzer/nmap net-analyzer/tcpdump net-dns/bind-tools net-misc/networkmanager net-misc/telnet-bsd sys-apps/haveged sys-block/parted sys-boot/grub sys-boot/syslinux sys-apps/iucode_tool sys-firmware/intel-microcode sys-fs/btrfs-progs sys-fs/cryptsetup sys-fs/ddrescue sys-fs/dfc sys-fs/f2fs-tools sys-fs/ntfs3g sys-kernel/linux-firmware sys-process/htop www-client/elinks www-client/links www-client/w3mmee app-crypt/chntpw sys-apps/hdparm sys-process/lsof app-forensics/foremost sys-apps/dcfldd app-admin/sysstat sys-process/iotop sys-block/whdd net-vpn/wireguard-tools sys-apps/fbset app-crypt/nwipe sys-fs/zerofree app-accessibility/espeakup sys-libs/gpm app-arch/p7zip sys-fs/growpart sys-apps/ethtool sys-apps/livecd-vipnix-scripts sys-apps/hwinfo sys-boot/shim sys-boot/mokutil app-crypt/efitools app-crypt/sbctl app-crypt/sbsigntools sys-boot/mokutil sys-libs/efivar app-crypt/pesign sys-boot/gnu-efi dev-libs/libtpms app-crypt/tpm2-tools app-crypt/tpm2-tss-engine app-crypt/tpm2-tss app-crypt/tpm2-totp  app-crypt/swtpm app-crypt/tpm2-abrmd app-crypt/tpm-tools sys-apps/rng-tools sys-boot/refind sys-fs/bcache-tools --exclude debian-sources --exclude gcc
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge @preserved-rebuild
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# Emerge bluetooth
+emerge net-wireless/blueman x11-themes/adwaita-qt -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# monero + p2pool + xmrig
+#emerge net-p2p/monero p2pool xmrig
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# X SERVER + LXQT
+emerge xlibre-drivers/xf86-video-vmware x11-apps/mesa-progs lxqt-base/lxqt-meta x11-terms/qterminal gnome-extra/nm-applet media-sound/pavucontrol-qt app-text/evince media-gfx/lximage-qt kde-frameworks/kwindowsystem:5 kde-plasma/knighttime -ND
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# benchmark
+emerge app-benchmarks/glmark2 app-benchmarks/vkmark -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# Tools
+#emerge sys-block/gparted www-client/brave-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m net-im/discord-bin net-im/telegram-desktop-bin sys-apps/lm_sensors dev-util/vulkan-tools -N
+emerge sys-block/gparted www-client/brave-bin net-ftp/filezilla net-misc/tigervnc net-misc/remmina www-client/w3m sys-apps/lm_sensors dev-util/vulkan-tools -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# net tools
+emerge net-misc/chrony net-vpn/openvpn sys-fs/mdadm sys-fs/dmraid sys-fs/lvm2 sys-apps/dool app-arch/lz4 -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# RDP tools
+
+emerge net-misc/rdesktop -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge media-libs/libsdl3 -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge media-libs/sdl2-ttf -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge net-misc/freerdp -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge lxqt-base/lxqt-powermanagement net-misc/iperf net-analyzer/speedtest-cli media-gfx/scrot
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+#emerge nvidia-cuda-toolkit
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+#
+#SANDBOX_PREDICT="/proc/self/task:/proc/thread-self" emerge app-ai/ollama
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+emerge net-misc/openssh sys-apps/dbus sys-auth/polkit sys-apps/man-db
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+
+etc-update --automode -5
+EOF
+cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part3.sh <<EOF
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+
+. /etc/profile
+
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+
+gcc-config 1
+env-update
+. /etc/profile
+ldconfig
+echo "RUNNING SCRIPT INTO MCHROOT..."
+. /etc/profile
+# Configure fstab
+echo '# VIPNIX LiveCD fstab' > /etc/fstab
+echo 'tmpfs   /                                       tmpfs   defaults        0 0' >> /etc/fstab
+
+# Configure hostname
+sed -i /hostname=/d /etc/conf.d/hostname
+echo 'hostname="livecd-vipnix"' >> /etc/conf.d/hostname
+
+# Set root password and permit login using SSH
+echo -e "root\nroot" | passwd root
+echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config
+
+# Include essential services on boot
+rc-update add NetworkManager sysinit
+rc-update add autoconfig default
+rc-update add haveged default
+rc-update add sshd default
+rc-update add fixinittab default
+rc-update add gpm default
+rc-update add NetworkManager default
+rc-update add bluetooth default
+rc-update add avahi-daemon default
+rc-update add pulseaudio default
+
+# pulseaudio
+usermod -aG audio pulse
+if ! grep -q '^PULSEAUDIO_SHOULD_NOT_GO_SYSTEMWIDE=' /etc/conf.d/pulseaudio; then
+    echo 'PULSEAUDIO_SHOULD_NOT_GO_SYSTEMWIDE="no"' >> /etc/conf.d/pulseaudio
+fi
+
+sed -i '/^load-module module-native-protocol-unix/ !b; /auth-anonymous/ b; s|^load-module module-native-protocol-unix.*|load-module module-native-protocol-unix auth-anonymous=1 socket=/var/run/pulse/native|' /etc/pulse/system.pa
+
+
+sed -i /'c1:12345:respawn:'/d /etc/inittab
+sed -i /'c2:2345:respawn:'/d /etc/inittab
+sed -i /'c3:2345:respawn:'/d /etc/inittab
+sed -i /'c4:2345:respawn:'/d /etc/inittab
+sed -i s,"# TERMINALS","# TERMINALS\nc1:12345:respawn:/sbin/agetty -nl /usr/bin/bashlogin 38400 tty1 linux\nc2:12345:respawn:/sbin/agetty -nl /usr/bin/bashlogin 38400 tty2 linux\nc3:12345:respawn:/sbin/agetty -nl /usr/bin/bashlogin 38400 tty3 linux\nc4:12345:respawn:/sbin/agetty --noclear 38400 tty4 linux",g /etc/inittab
+
+
+# Make automatic post-login banner
+CHECK="\$(grep bashlogin-banner /etc/bash/bashrc|wc -l)"
+if [ \${CHECK} -eq 0 ]; then
+	echo '/usr/bin/bashlogin-banner' >> /etc/bash/bashrc
+fi
+
+# Use VIM instead VI
+eselect vi set vim
+
+# Install aditional locales (brazilian)
+echo 'C.UTF8 UTF-8' > /etc/locale.gen
+echo 'en_US.UTF-8 UTF-8' >> /etc/locale.gen
+echo 'pt_BR.UTF-8 UTF-8' >> /etc/locale.gen
+
+locale-gen
+env-update
+EOF
+
+# build kernel
+cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part4.sh <<EOF
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+
+. /etc/profile
+
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+
+gcc-config 1
+env-update
+. /etc/profile
+ldconfig
+echo "RUNNING SCRIPT INTO MCHROOT..."
+. /etc/profile
+#########################################################
+
+# build dracut
+emerge sys-kernel/dracut -N
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+# sign-kernel-modules
+rm -rf /etc/kernel/certs
+mkdir -p /etc/kernel/certs/linux
+echo 'HOME                    = .
+RANDFILE                = \$ENV::HOME/.rnd
+[ req ]
+distinguished_name      = req_distinguished_name
+x509_extensions         = v3
+string_mask             = utf8only
+prompt                  = no
+
+[ req_distinguished_name ]
+countryName             = BR
+stateOrProvinceName     = Minas Gerais
+localityName            = Belo Horizonte
+0.organizationName      = Vipnix
+commonName              = Secure Boot Signing Key
+emailAddress            = suporte@vipnix.com.br
+
+[ v3 ]
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always,issuer
+basicConstraints        = critical,CA:FALSE
+extendedKeyUsage        = codeSigning,1.3.6.1.4.1.311.10.3.6
+nsComment               = "OpenSSL Generated Certificate"' > /etc/kernel/certs/linux/vipnix.cnf
+#
+# Generate RNG
+rm -f /root/.rnd /.rnd
+cd /root ; openssl rand -writerand .rnd
+
+# Generates a new plain text PRIVATE key (signing_key.priv) and a binary PUBLIC key (signing_key.der) (used by mokutil)
+openssl req -config /etc/kernel/certs/linux/vipnix.cnf -new -x509 -newkey rsa:2048 -nodes -days 36500 -outform DER -keyout "/etc/kernel/certs/linux/signing_key.priv" -out "/etc/kernel/certs/linux/signing_key.der"
+
+# Converts the binary PUBLIC key (signing_key.der) to plain text PEM format (used by sbsign)
+openssl x509 -in /etc/kernel/certs/linux/signing_key.der -inform DER -outform PEM -out /etc/kernel/certs/linux/sbsign_signing_key.pem
+
+# Merges the plain text PRIVATE key (signing_key.priv) with the plain text PUBLIC key (signing_key.pem) into a single PEM file (used in the debian-sources kernel)
+cat /etc/kernel/certs/linux/signing_key.priv /etc/kernel/certs/linux/sbsign_signing_key.pem > /etc/kernel/certs/linux/signing_key.pem
+
+# Exports the PRIVATE + PUBLIC key from plain text (PEM) to binary DER format (used in the debian-sources kernel)
+openssl x509 -outform der -in /etc/kernel/certs/linux/signing_key.pem -out /etc/kernel/certs/linux/signing_key.x509
+chmod -R 644 /etc/kernel/certs/linux/signing_key.pem
+
+#########################################################
+# Rebuild kernel
+
+emerge -C debian-sources
+rm -rf /boot/*
+rm -rf /lib/modules/*
+rm -rf /usr/src/*
+
+USE='-zfs' emerge sys-kernel/debian-sources
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+
+#rm /usr/bin/nvidia*
+#rm /usr/share/vulkan/implicit_layer.d/nvidia_layers.json
+#rm /etc/OpenCL/vendors/nvidia.icd
+#rm /usr/share/vulkan/icd.d/nvidia_icd.json
+#rm /usr/share/applications/nvidia-settings.desktop
+#rm /usr/share/pixmaps/nvidia-settings.png
+#rm /usr/share/nvidia/*
+#rm /usr/share/glvnd/egl_vendor.d/10_nvidia.json
+#rm /usr/share/X11/xorg.conf.d/nvidia-drm-outputclass.conf
+#rm /usr/share/dbus-1/system.d/nvidia-dbus.conf
+#rm /usr/share/man/man1/nvidia*
+#rm -rf /lib/modules/nvidia
+#rm -rf /usr/share/doc/nvidia*
+#rm /usr/lib64/xorg/modules/extensions/libglxserver_nvidia.so
+#rm -rf /lib/modules/nvidia-open /lib/modules/*/video/nvidia*
+#
+#emerge app-admin/gpu-configurator gui-libs/egl-gbm dev-util/vulkan-headers media-libs/vulkan-loader dev-util/glslang
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+#
+#emerge xlibre-drivers/nvidia-kernel-modules
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+#
+#emerge xlibre-drivers/nvidia-drivers
+#if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+#
+## 6.18.15_p1-r400:forky
+##gpu-configurator nvidia kernel 595.45.04 6.18.15-r400-debian1-mark --purge
+##gpu-configurator nvidia configure 595.45.04 --force
+##gpu-configurator nvidia kernel 595.45.04 6.18.15-r400-debian1-mark --proprietary=false
+##ln -s /opt/nvidia/nvidia-drivers-595.45.04/lib64/xorg/modules/drivers/nvidia_drv.so /usr/lib64/xorg/modules/xlibre-25/drivers
+#
+## Latest
+#NVIDIA_VER="$(qlist -ICv xlibre-drivers/nvidia-drivers | sed 's|.*/nvidia-drivers-||' | sed 's|-r[0-9]\+$||' | tail -n1)"
+#KERNEL_VER="$(ls -1 /lib/modules | grep debian | sort -V | tail -n1)"
+#gpu-configurator nvidia kernel ${NVIDIA_VER} ${KERNEL_VER} --purge
+#gpu-configurator nvidia configure ${NVIDIA_VER} --force
+#gpu-configurator nvidia kernel ${NVIDIA_VER} ${KERNEL_VER} --proprietary=false
+#ln -sf /opt/nvidia/nvidia-drivers-${NVIDIA_VER}/lib64/xorg/modules/drivers/nvidia_drv.so /usr/lib64/xorg/modules/xlibre-25/drivers
+
+#######################################################################
+# zfs support
+emerge sys-fs/zfs sys-fs/zfs-kmod
+if [ "\$?" -ne 0 ];then echo 'ERRO' ;exit 1 ;fi
+EOF
+
+# sign ZFS modules
+#
+echo -e '# sign ZFS modules\nfor ko in $(equery f zfs-kmod|grep ko);do /usr/src/linux/scripts/sign-file sha512 /etc/kernel/certs/linux/signing_key.pem /etc/kernel/certs/linux/signing_key.x509 ${ko};done' >> ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part4.sh
+
+# sign nvidia modules
+echo -e '# sign Nvidia modules\nfor ko in $(find /lib/modules/|grep nvidia|grep ko);do /usr/src/linux/scripts/sign-file sha512 /etc/kernel/certs/linux/signing_key.pem /etc/kernel/certs/linux/signing_key.x509 ${ko};done' >> ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part4.sh
+umount_all
+}
+
+############################################################################################
+
+stage3_p1(){
+#####################
+check-needs-mounted
+#####################
+# run scripts into chroot
+chmod +x ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part1.sh
+
+mchroot ${ROOTDIR}/customcd/files/ /make-livecd-funtoo-into-chroot-part1.sh
+umount_all
+}
+
+stage3_p2(){
+#####################
+check-needs-mounted
+#####################
+# run scripts into chroot
+chmod +x ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part2.sh
+
+mchroot ${ROOTDIR}/customcd/files/ /make-livecd-funtoo-into-chroot-part2.sh
+umount_all
+}
+
+stage3_p3(){
+#####################
+check-needs-mounted
+#####################
+# run scripts into chroot
+chmod +x ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part3.sh
+
+mchroot ${ROOTDIR}/customcd/files/ /make-livecd-funtoo-into-chroot-part3.sh
+umount_all
+}
+stage3_p4(){
+#####################
+check-needs-mounted
+#####################
+# run scripts into chroot
+chmod +x ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-part4.sh
+
+mchroot ${ROOTDIR}/customcd/files/ /make-livecd-funtoo-into-chroot-part4.sh
+umount_all
+}
+############################################################################################
+
+stage4(){
+#####################
+check-needs-mounted
+#####################
+# Prepare user environment
+
+rm -f ${ROOTDIR}/customcd/files/root/${SKEL_VER}
+wget https://vipnix.com.br/src-livecd/files/${SKEL_VER}  -P ${ROOTDIR}/customcd/files/root ; tar xjpf ${ROOTDIR}/customcd/files/root/${SKEL_VER} -C ${ROOTDIR}/customcd/files/etc ; rm ${ROOTDIR}/customcd/files/root/${SKEL_VER} ; rsync -azh --delete ${ROOTDIR}/customcd/files/etc/skel/ ${ROOTDIR}/customcd/files/root/
+
+
+###########################################
+
+
+# Get/extract Funtoo isoroot and make initramfs:
+rm -rf ${ROOTDIR}/customcd/isoroot
+rm ${ROOTDIR}/isoroot-livecd-vipnix*
+
+wget https://vipnix.com.br/src-livecd/${ISOROOT_RELEASE} -P ${ROOTDIR}
+tar xjpf ${ROOTDIR}/${ISOROOT_RELEASE} -C ${ROOTDIR}/customcd
+
+# Initramfs
+rm -rf /usr/src/initramfs /usr/src/initram.igz
+mkdir -p /usr/src/initramfs ; cd /usr/src/initramfs
+
+#cp -rp ${ROOTDIR}/customcd/files/lib/firmware /usr/src/initramfs/lib
+
+
+
+############
+
+IGZ=${ROOTDIR}/customcd/isoroot/funtoo.igz
+ORIGEM=${ROOTDIR}/customcd/files
+DESTINO=/usr/src/initramfs
+
+#rm -rf "$DESTINO"
+#mkdir -p "$DESTINO"
+cd "$DESTINO"
+# Copy kernel modules and firmwares into initram
+mkdir /usr/src/initramfs/lib/modules -p
+cp -vrp ${ROOTDIR}/customcd/files/lib/modules/* /usr/src/initramfs/lib/modules
+
+echo "=== Extraindo initramfs atual ==="
+#xz -dc "$IGZ" | cpio -idmv
+cat ${ROOTDIR}/customcd/isoroot/funtoo.igz | xz -d | cpio -id
+
+echo
+echo "=== Removendo firmware gigante do initramfs ==="
+rm -rf "$DESTINO/lib/firmware"
+copylib_by_soname() {
+	soname="$1"
+
+	[ -n "$soname" ] || return 0
+
+	src=$(find "$ORIGEM/lib" "$ORIGEM/usr/lib" \( -type f -o -type l \) -name "$soname" -print | head -n 1)
+
+	if [ -z "$src" ]; then
+		echo "ERRO: não achei a lib $soname dentro de $ORIGEM/lib ou $ORIGEM/usr/lib"
+		exit 1
+	fi
+
+	rel="${src#$ORIGEM}"
+
+	echo "LIB: $src -> $DESTINO$rel"
+	mkdir -p "$DESTINO$(dirname "$rel")"
+	cp -avL "$src" "$DESTINO$rel"
+	file "$DESTINO$rel"
+}
+
+copylib_path() {
+	rel="$1"
+
+	if [ ! -e "$ORIGEM$rel" ]; then
+		echo "ERRO: lib não existe na origem i686: $ORIGEM$rel"
+		exit 1
+	fi
+
+	echo "LIB: $ORIGEM$rel -> $DESTINO$rel"
+	mkdir -p "$DESTINO$(dirname "$rel")"
+	cp -avL "$ORIGEM$rel" "$DESTINO$rel"
+	file "$DESTINO$rel"
+}
+
+copy_needed_libs() {
+	obj="$1"
+
+	echo
+	echo "NEEDED de $obj:"
+	if ! readelf -d "$ORIGEM$obj" 2>/dev/null | grep 'Shared library'; then
+		echo "INFO: sem NEEDED, provavelmente estático"
+		return 0
+	fi
+
+	readelf -d "$ORIGEM$obj" 2>/dev/null |
+		sed -n 's/.*Shared library: \[\(.*\)\].*/\1/p' |
+		sort -u |
+		while read -r soname; do
+			copylib_by_soname "$soname"
+		done
+}
+
+copybin() {
+	src="$1"
+	dst="$2"
+
+	echo
+	echo "============================================================"
+	echo "BIN: $src -> $dst"
+	echo "============================================================"
+
+	if [ ! -e "$ORIGEM$src" ]; then
+		echo "ERRO: binário não existe na origem i686: $ORIGEM$src"
+		exit 1
+	fi
+
+	echo "Origem:"
+	file "$ORIGEM$src"
+
+	mkdir -p "$DESTINO$(dirname "$dst")"
+	cp -avL "$ORIGEM$src" "$DESTINO$dst"
+
+	echo
+	echo "Destino:"
+	file "$DESTINO$dst"
+
+	copy_needed_libs "$src"
+}
+
+echo
+echo "=== Copiando loader ELF 32 bit ==="
+copylib_path /lib/ld-linux.so.2
+
+copybin /bin/busybox /bin/busybox
+copybin /sbin/blkid /sbin/blkid
+copybin /sbin/switch_root /sbin/switch_root
+copybin /bin/kmod /usr/bin/kmod
+copybin /bin/udevadm /usr/bin/udevadm
+copybin /sbin/udevd /usr/sbin/udevd
+copybin /sbin/dmsetup /usr/sbin/dmsetup
+
+for f in v4l_id collect scsi_id ata_id cdrom_id mtd_probe; do
+	copybin "/lib/udev/$f" "/usr/lib/udev/$f"
+done
+
+echo
+echo "=== Resolvendo dependências indiretas das libs copiadas ==="
+changed=1
+while [ "$changed" = 1 ]; do
+	changed=0
+
+	while read -r obj; do
+		readelf -d "$obj" 2>/dev/null |
+			sed -n 's/.*Shared library: \[\(.*\)\].*/\1/p' |
+			sort -u |
+			while read -r soname; do
+				[ -n "$soname" ] || continue
+
+				if find "$DESTINO/lib" "$DESTINO/usr/lib" \( -type f -o -type l \) -name "$soname" -print | grep -q .; then
+					continue
+				fi
+
+				src=$(find "$ORIGEM/lib" "$ORIGEM/usr/lib" \( -type f -o -type l \) -name "$soname" -print | head -n 1)
+
+				if [ -z "$src" ]; then
+					echo "ERRO: dependência indireta não encontrada: $soname"
+					echo "Arquivo que pediu: $obj"
+					exit 1
+				fi
+
+				rel="${src#$ORIGEM}"
+				echo "LIB indireta: $src -> $DESTINO$rel"
+				mkdir -p "$DESTINO$(dirname "$rel")"
+				cp -av "$src" "$DESTINO$rel"
+				file "$DESTINO$rel"
+				touch /tmp/initramfs-libs-changed
+			done
+	done <<EOF
+$(find "$DESTINO/lib" "$DESTINO/usr/lib" -type f 2>/dev/null)
+EOF
+
+	if [ -e /tmp/initramfs-libs-changed ]; then
+		rm -f /tmp/initramfs-libs-changed
+		changed=1
+	fi
+done
+
+echo
+echo "=== Recriando symlinks do kmod ==="
+cd "$DESTINO"
+ln -svf ../usr/bin/kmod sbin/modprobe
+ln -svf ../usr/bin/kmod sbin/insmod
+ln -svf ../usr/bin/kmod sbin/rmmod
+ln -svf ../usr/bin/kmod sbin/lsmod
+ln -svf ../usr/bin/kmod sbin/depmod
+ln -svf ../usr/bin/kmod sbin/modinfo
+cd "$DESTINO"/bin
+ln -svf busybox test
+ln -svf busybox chroot
+
+
+echo
+echo "=== Validando arquitetura dos binários principais ==="
+for f in \
+/bin/busybox \
+/sbin/blkid \
+/sbin/switch_root \
+/usr/bin/kmod \
+/usr/bin/udevadm \
+/usr/sbin/udevd \
+/usr/sbin/dmsetup \
+/usr/lib/udev/v4l_id \
+/usr/lib/udev/collect \
+/usr/lib/udev/scsi_id \
+/usr/lib/udev/ata_id \
+/usr/lib/udev/cdrom_id \
+/usr/lib/udev/mtd_probe
+do
+	echo
+	echo "=== $f ==="
+	file "$DESTINO$f"
+done
+
+echo
+echo "=== Validando libs copiadas ==="
+find "$DESTINO/lib" "$DESTINO/usr/lib" \( -type f -o -type l \) -exec file {} \; | sort
+
+echo
+echo "=== Checando binários x86-64 restantes fora de firmware ==="
+if find "$DESTINO" -type f -exec file {} \; | grep 'ELF 64-bit.*x86-64' | grep -v '/lib/firmware/'; then
+	echo "ERRO: ainda existem binários x86-64 no initramfs"
+	exit 1
+fi
+
+sed -i '/good_msg "Switching to real root: switch_root ${CHROOT} ${init} ${init_opts}"/i\
+mkdir -p "${CHROOT}/dev" "${CHROOT}/proc" "${CHROOT}/sys" "${CHROOT}/run"\
+mountpoint -q "${CHROOT}/dev" || mount --move /dev "${CHROOT}/dev"\
+mountpoint -q "${CHROOT}/proc" || mount --move /proc "${CHROOT}/proc"\
+mountpoint -q "${CHROOT}/sys" || mount --move /sys "${CHROOT}/sys"\
+mountpoint -q "${CHROOT}/run" || mount --move /run "${CHROOT}/run"\
+' /usr/src/initramfs/init
+mkdir /usr/src/initramfs/lib/firmware
+
+cp /usr/src/initramfs/init /usr/src/initramfs/linuxrc
+
+echo
+echo "=== Recriando funtoo.igz ==="
+cd "$DESTINO"
+#find . -print0 | cpio --null -ov --format=newc | xz -C crc32 -9 > "$IGZ"
+
+echo
+echo "=== Resultado final ==="
+file "$IGZ"
+
+echo "OK"
+#############
+
+# Repack initram Funtoo
+cd /usr/src/initramfs
+find . | cpio -H newc -o | xz --check=crc32 --x86 --lzma2 > /usr/src/initram.igz
+
+cp /usr/src/initram.igz ${ROOTDIR}/customcd/isoroot/funtoo.igz
+umount_all
+}
+
+############################################################################################
+
+stage5(){
+
+#####################
+check-needs-mounted
+#####################
+# Fix discord bug running as root
+desktop_file="${ROOTDIR}/customcd/files/usr/share/applications/discord.desktop"
+
+if ! grep -q 'Exec=/opt/discord/Discord --no-sandbox' "$desktop_file"; then
+     sed -i s,'Exec=/opt/discord/Discord','Exec=/opt/discord/Discord --no-sandbox',g "$desktop_file"
+fi
+
+mkdir -p ${ROOTDIR}/customcd/files/etc/skel/.config/discord
+
+echo '{
+  "IS_MAXIMIZED": true,
+  "IS_MINIMIZED": false,
+  "WINDOW_BOUNDS": {
+    "x": 2240,
+    "y": 219,
+    "width": 1280,
+    "height": 720
+  },
+  "SKIP_HOST_UPDATE": true
+}' > ${ROOTDIR}/customcd/files/etc/skel/.config/discord/settings.json
+
+###########################################
+# Fix brave bug running as root
+desktop_file2="${ROOTDIR}/customcd/files/usr/share/applications/brave-bin.desktop"
+
+if ! grep -q 'Exec=/usr/bin/brave-bin --no-sandbox' "$desktop_file"; then
+     sed -i s,'Exec=/usr/bin/brave-bin %u','Exec=/usr/bin/brave-bin --no-sandbox',g "$desktop_file2"
+fi
+
+###########################################
+# Configure to UTC
+ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+
+# Remove temporary files
+rm -rf ${ROOTDIR}/customcd/files/var/cache/portage/distfiles/*
+rm -rf ${ROOTDIR}/customcd/files/var/tmp/portage/*
+rm -rf ${ROOTDIR}/customcd/files/root/nohup.* ${ROOTDIR}/customcd/files/root/.bash_history ${ROOTDIR}/customcd/files/root/.viminfo ${ROOTDIR}/customcd/files/root/.bash_history
+rm -rf ${ROOTDIR}/customcd/files/var/log/messages ${ROOTDIR}/customcd/files/var/log/wtmp ${ROOTDIR}/customcd/files/var/log/Xorg.0.log* ${ROOTDIR}/customcd/files/var/log/dmesg ${ROOTDIR}/customcd/files/var/log/rc.log
+rm -rf ${ROOTDIR}/customcd/files/etc/ssh/*key*
+rm -rf ${ROOTDIR}/customcd/files/root/.gitconfig
+mkdir -p ${ROOTDIR}/customcd/files/root/.ssh
+rm -rf ${ROOTDIR}/customcd/files/root/skel*
+rm -f ${ROOTDIR}/customcd/files/etc/resolv.conf
+cp ${ROOTDIR}/customcd/isoroot/boot/grub/vipnix.png ${ROOTDIR}/customcd/files/usr/share/lxqt/wallpapers/waves-logo.png
+
+umount_all
+# Create squashfs
+touch "${ROOTDIR}/customcd/files/customized"
+touch "${ROOTDIR}/customcd/isoroot/customized"
+
+rm -rf ${ROOTDIR}/customcd/files/lib/modules/ ${ROOTDIR}/customcd/files/lib/firmware ${ROOTDIR}/customcd/files/usr/src//
+mkdir -p ${ROOTDIR}/customcd/files/lib/modules/ ${ROOTDIR}/customcd/files/lib/firmware
+
+rm -f ${ROOTDIR}/customcd/isoroot/image.squashfs*
+mksquashfs ${ROOTDIR}/customcd/files/ ${ROOTDIR}/customcd/isoroot/image.squashfs
+cd ${ROOTDIR}/customcd/isoroot/ ; md5sum image.squashfs > image.squashfs.md5
+chmod 666 ${ROOTDIR}/customcd/isoroot/image.squashfs
+chmod 666 ${ROOTDIR}/customcd/isoroot/image.squashfs.md5
+umount_all
+}
+
+############################################################################################
+
+stage7(){
+#####################
+check-needs-mounted
+#####################
+
+cat > ${ROOTDIR}/customcd/files/boot/SBAT.csv <<EOF2
+sbat,1,SBAT Version,sbat,1,https://github.com/rhboot/shim/blob/main/SBAT.md
+grub,1,Free Software Foundation,grub,2.06,https://www.gnu.org/software/grub/
+EOF2
+
+cat > ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-geniso.sh <<EOF
+
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/bin"
+
+. /etc/profile
+
+export CHOST=i686-pc-linux-gnu
+export CTARGET=i686-pc-linux-gnu
+export CBUILD=i686-pc-linux-gnu
+export ARCH=x86
+export ACCEPT_KEYWORDS="x86"
+
+gcc-config 1
+env-update
+. /etc/profile
+ldconfig
+echo "RUNNING SCRIPT INTO MCHROOT..."
+. /etc/profile
+# create grub_real efi image (without sign)
+rm -rf /boot/EFI
+mkdir -p /boot/EFI/BOOT
+#mkdir /boot/grub/x86_64-efi
+
+grub-mkimage --directory "/usr/lib/grub/i386-efi" --prefix "/boot/grub" --output "/boot/EFI/BOOT/grub32_real.efi"  --format 'i386-efi' --compression 'auto' file blocklist test true regexp newc search at_keyboard usb_keyboard  gcry_md5 hashsum gzio xzio lzopio ext2 xfs read halt sleep serial terminfo png password_pbkdf2 gcry_sha512 pbkdf2 part_gpt part_msdos ls tar squash4 loopback part_apple minicmd diskfilter linux relocator jpeg iso9660 udf hfsplus halt acpi mmap gfxmenu video_colors trig bitmap_scale gfxterm bitmap font fat exfat ntfs fshelp efifwsetup reboot echo configfile normal terminal gettext chain  priority_queue bufio datetime cat extcmd crypto gzio boot all_video efi_gop efi_uga video_bochs video_cirrus video video_fb gfxterm_background gfxterm_menu zfs tpm --sbat /boot/SBAT.csv
+
+# sign kernel image
+#VERSION="\$(ls /boot/kernel-debian-sources-i686*)"
+VERSION="\$(ls /boot/vmlinuz-debian-i686*)"
+
+rm -f /boot/kernel-funtoo
+sbsign --key /etc/kernel/certs/linux/signing_key.priv --cert /etc/kernel/certs/linux/signing_key.pem --output /boot/kernel-funtoo "\${VERSION}"
+
+###############################################################
+
+# get SHIM from funtoo/fedora
+mkdir -p /boot/EFI/BOOT
+cp /etc/kernel/certs/linux/signing_key.der /boot/ENROLL_THIS_KEY_IN_MOKMANAGER.der
+
+# sign shim
+sbsign --key /etc/kernel/certs/linux/signing_key.priv --cert /etc/kernel/certs/linux/sbsign_signing_key.pem --output /boot/EFI/BOOT/mmia32.efi /usr/share/shim/mmia32.efi
+sbsign --key /etc/kernel/certs/linux/signing_key.priv --cert /etc/kernel/certs/linux/sbsign_signing_key.pem --output /boot/EFI/BOOT/bootia32.efi /usr/share/shim/BOOTIA32.EFI
+
+# Sign grub
+sbsign --key /etc/kernel/certs/linux/signing_key.priv --cert /etc/kernel/certs/linux/sbsign_signing_key.pem --output /boot/EFI/BOOT/grub32.efi /boot/EFI/BOOT/grub32_real.efi
+
+########################################################################
+#
+# NOTE: Check if everything is okay after booting with the command:
+#
+# # keyctl list %:.builtin_trusted_keys
+#
+########################################################################
+EOF
+
+cp -rp ${ROOTDIR}/customcd/files/usr/lib/grub/i386-pc ${ROOTDIR}/customcd/isoroot/grub
+chmod +x ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot-geniso.sh
+mchroot ${ROOTDIR}/customcd/files/ /make-livecd-funtoo-into-chroot-geniso.sh
+
+# Clean unnecessary files
+rm ${ROOTDIR}/customcd/files/make-livecd-funtoo-into-chroot*.sh
+
+######################################################################
+#
+cp ${ROOTDIR}/customcd/files/boot/kernel-funtoo ${ROOTDIR}/customcd/isoroot/
+cp ${ROOTDIR}/customcd/files/boot/ENROLL_THIS_KEY_IN_MOKMANAGER.der ${ROOTDIR}/customcd/isoroot/
+rm -rf ${ROOTDIR}/customcd/isoroot/EFI
+rm -rf ${ROOTDIR}/customcd/isoroot/boot/EFI
+cp -rp ${ROOTDIR}/customcd/files/boot/EFI/ ${ROOTDIR}/customcd/isoroot/
+
+# copy this script to livecd
+cp /root/make-livecd-vipnix-i686.sh ${ROOTDIR}/customcd/isoroot
+
+# Create ISO image
+export DATE=$(date +%Y%m%d-%H%M)
+mkdir -p ${ROOTDIR}/customcd/isofile
+rm -f ${ROOTDIR}/customcd/isofile/funtoo-*
+rm -f ${ROOTDIR}/customcd/isofile/vipnix-*
+
+# generate .iso file
+grub-mkrescue -joliet -iso-level 3 -V "vipnix-livecd" -o ${ROOTDIR}/customcd/isofile/vipnix-livecd-i686-${DATE}.iso ${ROOTDIR}/customcd/isoroot
+
+# generte md5sum + sha256sum
+cd /livecd-vipnix/customcd/isofile/ ; export VER="$(ls -1htr *iso|tail -1)" ; md5sum $VER > ${VER}.md5 ; sha256sum $VER > ${VER}.sha256 ; cd
+
+# end
+umount_all
+}
+
+case "$1" in
+	stage1)
+		stage1
+        ;;
+	stage2)
+		stage2
+        ;;
+	stage3_p1)
+		stage3_p1
+        ;;
+	stage3_p2)
+		stage3_p2
+        ;;
+	stage3_p3)
+		stage3_p3
+        ;;
+	stage3_p4)
+		stage3_p4
+        ;;
+	stage4)
+		stage4
+        ;;
+	stage5)
+		stage5
+        ;;
+	geniso)
+		stage7
+        ;;
+	version)
+	        echo "1.0"
+	        exit $?
+        ;;
+	mount)
+		check-needs-mounted
+	;;
+	umount)
+		umount_all
+	;;
+	all)
+		stage1
+		stage2
+		stage3_p1
+		stage3_p2
+		stage3_p3
+		stage3_p4
+		stage4
+		stage5
+		geniso
+        ;;
+	chroot)
+		check-needs-mounted
+		mchroot ${ROOTDIR}/customcd/files/
+		umount_all
+	;;
+	*)
+		echo -e "\nVIPNIX - https://vipnix.com.br\n\nScript to gen ISO.\n"
+		echo -e "Options:\n\nstage1: get funtoo stage official\nstage2: create script to run chroot\nstage3_p1: configure useflags\nstage3_p2: emerge ebuilds\nstage3_p3: configure inits on boot\nstage3_p4: create secure boot keys and build kernel\nstage4: create isoroot and initramfs\nstage5: make squashfs\ngeniso: create iso file\nmount: mounts all necessary directories inside \"${ROOTDIR}\"\numount: safely unmounts all necessary directories inside \"${ROOTDIR}\"\nchroot: enters the environment via mchroot inside \"${ROOTDIR}\"\n\nall: generates all stages (recommended)\n"
+		echo -e "Example: $0 all\n"
+		exit 0
+        ;;
+esac
+
+# end

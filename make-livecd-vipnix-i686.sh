@@ -9,7 +9,7 @@
 ##############################################################
 
 ISOROOT_RELEASE="isoroot-livecd-vipnix-3.2.tar.bz2"
-ROOTDIR="/livecd-vipnix"
+ROOTDIR="/livecd-vipnix-i686"
 SKEL_VER="skel-0.5.tar.bz2"
 
 ############################################################################################
@@ -1261,7 +1261,7 @@ rm -f ${ROOTDIR}/customcd/isofile/vipnix-*
 grub-mkrescue -joliet -iso-level 3 -V "vipnix-livecd" -o ${ROOTDIR}/customcd/isofile/vipnix-livecd-i686-${DATE}.iso ${ROOTDIR}/customcd/isoroot
 
 # generte md5sum + sha256sum
-cd /livecd-vipnix/customcd/isofile/ ; export VER="$(ls -1htr *iso|tail -1)" ; md5sum $VER > ${VER}.md5 ; sha256sum $VER > ${VER}.sha256 ; cd
+cd ${ROOTDIR}/customcd/isofile/ ; export VER="$(ls -1htr *iso|tail -1)" ; md5sum $VER > ${VER}.md5 ; sha256sum $VER > ${VER}.sha256 ; cd
 
 # end
 umount_all
